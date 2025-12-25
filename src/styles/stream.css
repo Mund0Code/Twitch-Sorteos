@@ -1,0 +1,348 @@
+/* =========================
+   STREAM MODE
+   ========================= */
+
+.streamRoot .panel {
+  background: rgba(0, 0, 0, 0.35);
+}
+
+.streamHero {
+  display: grid;
+  gap: 14px;
+}
+
+/* ---- Stream Winner ---- */
+.streamRoot .winnerName {
+  font-size: 56px;
+}
+
+/* ---- Stream keyboard hints ---- */
+.streamKbdBar {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.kbd {
+  padding: 4px 8px;
+  border-radius: 8px;
+  border: 1px solid var(--border-soft);
+  background: rgba(0, 0, 0, 0.35);
+  font-weight: 900;
+}
+
+/* ---- Stream Stats ---- */
+.bigStats {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 10px;
+}
+
+.statCard {
+  flex: 1;
+  min-width: 210px;
+  padding: 12px 14px;
+  border-radius: 16px;
+  border: 1px solid var(--border-soft);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.statLabel {
+  font-size: 12px;
+  color: var(--text-muted);
+  font-weight: 900;
+}
+
+.statValue {
+  margin-top: 6px;
+  font-size: 40px;
+  font-weight: 950;
+}
+
+/* ---- Stream Status Chips ---- */
+.statusChip {
+  display: inline-flex;
+  gap: 8px;
+  margin-top: 10px;
+  padding: 8px 12px;
+  border-radius: 999px;
+  font-weight: 900;
+  font-size: 12px;
+  border: 1px solid var(--border-soft);
+  background: rgba(0, 0, 0, 0.22);
+}
+
+.statusOk {
+  border-color: rgba(34, 197, 94, 0.45);
+  background: rgba(34, 197, 94, 0.18);
+}
+
+.statusWarn {
+  border-color: rgba(251, 191, 36, 0.45);
+  background: rgba(251, 191, 36, 0.18);
+}
+
+.statusBad {
+  border-color: rgba(251, 113, 133, 0.45);
+  background: rgba(251, 113, 133, 0.18);
+}
+
+@keyframes softPulse {
+  0% {
+    transform: translateY(0);
+    box-shadow: 0 0 0 rgba(34, 197, 94, 0);
+  }
+  50% {
+    transform: translateY(-1px);
+    box-shadow: 0 0 18px rgba(34, 197, 94, 0.18);
+  }
+  100% {
+    transform: translateY(0);
+    box-shadow: 0 0 0 rgba(34, 197, 94, 0);
+  }
+}
+
+.pulseReady {
+  animation: softPulse 1.4s ease-in-out infinite;
+}
+
+:root[data-theme="neon"] .streamRoot .statCard {
+  border-color: rgba(34, 211, 238, 0.18);
+  box-shadow: 0 0 0 1px rgba(34, 211, 238, 0.08) inset,
+    0 0 20px rgba(34, 211, 238, 0.1);
+}
+
+/* ===== STREAM HUD ===== */
+.streamHud {
+  margin-top: 14px;
+  padding: 12px 12px;
+  border-radius: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.streamRoot .streamHud {
+  padding: 14px 14px;
+  border-radius: 22px;
+}
+
+.hudRow {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.hudStat {
+  flex: 1;
+  min-width: 210px;
+  padding: 12px 14px;
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(0, 0, 0, 0.25);
+}
+
+.hudLabel {
+  font-size: 12px;
+  opacity: 0.7;
+  font-weight: 900;
+  letter-spacing: 0.3px;
+}
+
+.hudValue {
+  margin-top: 6px;
+  font-size: 34px;
+  font-weight: 950;
+  line-height: 1;
+}
+
+.streamRoot .hudValue {
+  font-size: 46px;
+}
+
+.hudChips {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 12px;
+}
+
+.hudChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: 999px;
+  font-weight: 900;
+  font-size: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(0, 0, 0, 0.25);
+}
+
+.hudBanner {
+  margin-top: 12px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  font-weight: 900;
+  font-size: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(0, 0, 0, 0.25);
+}
+
+/* chips */
+.chipOk {
+  border-color: rgba(34, 197, 94, 0.4);
+  background: rgba(34, 197, 94, 0.14);
+}
+
+.chipWarn {
+  border-color: rgba(251, 191, 36, 0.4);
+  background: rgba(251, 191, 36, 0.12);
+}
+
+.chipBad {
+  border-color: rgba(251, 113, 133, 0.4);
+  background: rgba(251, 113, 133, 0.14);
+}
+
+.chipNeutral {
+  border-color: rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+/* ============ OVERLAY PRO ============ */
+.overlayRoot {
+  width: 100vw;
+  height: 100vh;
+  display: grid;
+  place-items: center;
+  background: transparent;
+  padding: 18px;
+}
+
+.overlayCardPro {
+  width: min(920px, 96vw);
+  border-radius: 22px;
+  padding: 18px 18px 14px 18px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.1),
+    rgba(255, 255, 255, 0.04)
+  );
+  backdrop-filter: blur(12px);
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.45);
+}
+
+.overlayTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.overlayTitle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 950;
+  letter-spacing: 0.2px;
+}
+
+.overlayDot {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  background: rgba(168, 85, 247, 0.95);
+  box-shadow: 0 0 0 4px rgba(168, 85, 247, 0.22);
+}
+
+.overlayTitleText {
+  font-size: 16px;
+  opacity: 0.95;
+}
+
+.overlayPrize {
+  opacity: 0.7;
+  font-weight: 800;
+}
+
+.overlayMeta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.overlayChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 900;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(0, 0, 0, 0.2);
+  color: rgba(255, 255, 255, 0.88);
+}
+
+.overlayChipLive {
+  border-color: rgba(34, 197, 94, 0.35);
+  background: rgba(34, 197, 94, 0.16);
+}
+
+.overlayWinnerWrap {
+  margin-top: 14px;
+  display: grid;
+  place-items: center;
+  min-height: 92px;
+}
+
+.overlayWinner {
+  font-size: 56px;
+  line-height: 1;
+  font-weight: 1000;
+  letter-spacing: 0.6px;
+  text-shadow: 0 18px 42px rgba(0, 0, 0, 0.55);
+  animation: overlayPop 260ms ease-out;
+  text-align: center;
+  padding: 6px 10px;
+}
+
+.overlayWinnerPicking {
+  opacity: 0.9;
+  filter: saturate(1.2);
+  animation: overlayPulse 700ms ease-in-out infinite;
+}
+
+.overlayHintPro {
+  margin-top: 10px;
+  font-size: 11px;
+  opacity: 0.55;
+  text-align: center;
+}
+
+@keyframes overlayPop {
+  from {
+    transform: translateY(8px) scale(0.98);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes overlayPulse {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 0.85;
+  }
+  50% {
+    transform: scale(1.02);
+    opacity: 1;
+  }
+}

@@ -1,0 +1,2 @@
+release/Twitch[[:space:]]Sorteos[[:space:]]Setup[[:space:]]0.0.0.exe filter=lfs diff=lfs merge=lfs -text
+release/win-unpacked/Twitch[[:space:]]Sorteos.exe filter=lfs diff=lfs merge=lfs -text

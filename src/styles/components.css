@@ -1,0 +1,565 @@
+/* =========================
+   COMPONENTS
+   ========================= */
+
+/* ---- TopBar ---- */
+.topbar {
+  display: flex;
+  justify-content: space-between;
+  gap: 18px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.title {
+  font-size: 28px;
+  font-weight: 950;
+  letter-spacing: 0.4px;
+}
+
+.subline {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+
+.topbarActions {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+/* ---- Badges ---- */
+.badge,
+.badgePro {
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 900;
+  border: 1px solid var(--border-soft);
+}
+
+.badge {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.badgePro {
+  background: rgba(168, 85, 247, 0.25);
+  border-color: rgba(168, 85, 247, 0.45);
+}
+
+/* ---- Buttons ---- */
+.btnGroup {
+  display: flex;
+  gap: 8px;
+}
+
+button {
+  font-family: inherit;
+}
+
+.btnPrimary,
+.btnSecondary,
+.btnDanger {
+  height: 36px;
+  padding: 0 14px;
+  border-radius: 12px;
+  font-weight: 900;
+  font-size: 13px;
+  border: 1px solid var(--border-soft);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btnPrimary {
+  background: linear-gradient(180deg, var(--accent), var(--accent-strong));
+  color: #14001f;
+}
+
+.btnSecondary {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--text-main);
+}
+
+.btnDanger {
+  background: rgba(251, 113, 133, 0.25);
+  border-color: rgba(251, 113, 133, 0.45);
+  color: #ffd9df;
+}
+
+.btnPrimary:disabled,
+.btnSecondary:disabled,
+.btnDanger:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* ---- Layout ---- */
+.grid2 {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr;
+  gap: 18px;
+}
+
+.panel {
+  padding: 16px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border-soft);
+}
+
+.panelHeader {
+  margin-bottom: 10px;
+}
+
+.row2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.rowActions {
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+/* ---- Inputs ---- */
+.label {
+  font-size: 12px;
+  font-weight: 900;
+  opacity: 0.7;
+}
+
+.input,
+.textarea,
+select {
+  width: 100%;
+  margin-top: 6px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid var(--border-soft);
+  background: rgba(0, 0, 0, 0.25);
+  color: var(--text-main);
+  outline: none;
+}
+
+.textarea {
+  min-height: 120px;
+  resize: vertical;
+}
+
+/* ---- Winner ---- */
+.winnerBox {
+  margin-top: 14px;
+  padding: 16px;
+  border-radius: 18px;
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid var(--border-soft);
+  text-align: center;
+}
+
+.winnerName {
+  margin-top: 10px;
+  font-size: 34px;
+  font-weight: 950;
+  letter-spacing: 0.6px;
+}
+
+/* ---- List ---- */
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.listItem {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.pill {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.18);
+  display: grid;
+  place-items: center;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.iconBtn {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+
+/* ---- History ---- */
+.history {
+  margin-top: 14px;
+}
+
+.historyHeader {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.historyList {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.historyItem {
+  padding: 8px 10px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+/* ---- PRO Panel ---- */
+.proPanel summary {
+  cursor: pointer;
+  font-weight: 900;
+}
+
+.proActions {
+  margin-top: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.proNote {
+  font-size: 12px;
+  opacity: 0.7;
+}
+
+/* ===== Theme Picker (preview + lock) ===== */
+
+.themeGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+.themeCard {
+  border: 1px solid var(--border-soft);
+  border-radius: 16px;
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.06);
+  cursor: pointer;
+  transition: transform 0.12s ease, border-color 0.12s ease,
+    background 0.12s ease;
+  text-align: left;
+  position: relative;
+  overflow: hidden;
+}
+
+.themeCard:hover {
+  transform: translateY(-1px);
+  border-color: rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.themeCardActive {
+  border-color: rgba(168, 85, 247, 0.55);
+  box-shadow: 0 0 0 1px rgba(168, 85, 247, 0.2) inset;
+}
+
+.themeHead {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 950;
+}
+
+.themeDesc {
+  margin-top: 6px;
+  font-size: 12px;
+  opacity: 0.75;
+}
+
+.themeMiniPreview {
+  margin-top: 10px;
+  height: 44px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 10px;
+}
+
+.themeDot {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+}
+
+.themeBar {
+  height: 8px;
+  flex: 1;
+  margin-left: 10px;
+  border-radius: 999px;
+  opacity: 0.9;
+}
+
+.themeLock {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  border-radius: 999px;
+  padding: 5px 8px;
+  font-size: 11px;
+  font-weight: 950;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(0, 0, 0, 0.25);
+}
+
+.themeFooter {
+  margin-top: 8px;
+  font-size: 11px;
+  opacity: 0.8;
+}
+
+/* =========================
+   NEON GLOW (solo si theme=neon)
+   ========================= */
+
+:root[data-theme="neon"] .card {
+  box-shadow: 0 30px 90px rgba(0, 0, 0, 0.55),
+    0 0 0 1px rgba(34, 211, 238, 0.1) inset, 0 0 40px var(--glow-1);
+}
+
+:root[data-theme="neon"] .panel {
+  border-color: rgba(34, 211, 238, 0.18);
+  box-shadow: 0 0 0 1px rgba(34, 211, 238, 0.08) inset,
+    0 0 24px rgba(34, 211, 238, 0.1);
+}
+
+:root[data-theme="neon"] .btnPrimary {
+  color: #071017;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35), 0 0 22px var(--glow-strong);
+}
+
+:root[data-theme="neon"] .btnPrimary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 12px 34px rgba(0, 0, 0, 0.42), 0 0 30px var(--glow-strong),
+    0 0 50px var(--glow-2);
+}
+
+:root[data-theme="neon"] .btnSecondary:hover {
+  border-color: rgba(34, 211, 238, 0.22);
+  box-shadow: 0 0 0 1px rgba(34, 211, 238, 0.1) inset,
+    0 0 18px rgba(34, 211, 238, 0.14);
+}
+
+:root[data-theme="neon"] .badgePro {
+  border-color: rgba(34, 211, 238, 0.3);
+  background: rgba(34, 211, 238, 0.16);
+  box-shadow: 0 0 18px rgba(34, 211, 238, 0.18);
+}
+
+/* inputs */
+:root[data-theme="neon"] .input:focus,
+:root[data-theme="neon"] .textarea:focus,
+:root[data-theme="neon"] select:focus {
+  border-color: rgba(34, 211, 238, 0.3);
+  box-shadow: 0 0 0 3px rgba(34, 211, 238, 0.1),
+    0 0 24px rgba(34, 211, 238, 0.12);
+}
+
+/* winner */
+:root[data-theme="neon"] .winnerBox {
+  border-color: rgba(34, 211, 238, 0.18);
+  box-shadow: 0 0 0 1px rgba(34, 211, 238, 0.08) inset,
+    0 0 26px rgba(34, 211, 238, 0.12);
+}
+
+/* list items hover */
+:root[data-theme="neon"] .listItem:hover {
+  border-color: rgba(34, 211, 238, 0.18);
+  box-shadow: 0 0 0 1px rgba(34, 211, 238, 0.08) inset,
+    0 0 16px rgba(34, 211, 238, 0.1);
+}
+
+/* status ok glow (stream chips) */
+:root[data-theme="neon"] .statusOk {
+  box-shadow: 0 0 18px rgba(34, 211, 238, 0.16);
+}
+
+/* ===== Activity Feed ===== */
+.feedBox {
+  margin-top: 14px;
+  padding: 12px 12px;
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.feedHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.feedList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 240px;
+  overflow: auto;
+  padding-right: 4px;
+}
+
+.feedItem {
+  position: relative;
+  padding: 10px 10px;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(0, 0, 0, 0.22);
+}
+
+.feedTitle {
+  font-weight: 900;
+  font-size: 13px;
+}
+
+.feedMeta {
+  margin-top: 4px;
+  font-size: 12px;
+  opacity: 0.75;
+}
+
+.feedTime {
+  margin-top: 6px;
+  font-size: 11px;
+  opacity: 0.55;
+}
+
+.feed-success {
+  border-color: rgba(34, 197, 94, 0.28);
+  background: rgba(34, 197, 94, 0.1);
+}
+
+.feed-warn {
+  border-color: rgba(251, 191, 36, 0.28);
+  background: rgba(251, 191, 36, 0.09);
+}
+
+.feed-error {
+  border-color: rgba(251, 113, 133, 0.28);
+  background: rgba(251, 113, 133, 0.09);
+}
+
+/* --- Status badge PRO --- */
+.statusBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  border-radius: 999px;
+  font-weight: 950;
+  font-size: 12px;
+  letter-spacing: 0.2px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(0, 0, 0, 0.18);
+}
+
+.statusBadge b {
+  font-weight: 1000;
+}
+
+.statusOpen {
+  border-color: rgba(34, 197, 94, 0.35);
+  background: rgba(34, 197, 94, 0.14);
+}
+
+.statusClosed {
+  border-color: rgba(239, 68, 68, 0.35);
+  background: rgba(239, 68, 68, 0.14);
+}
+
+.statusPicking {
+  border-color: rgba(168, 85, 247, 0.35);
+  background: rgba(168, 85, 247, 0.14);
+}
+
+.rulesLine {
+  margin-top: 6px;
+  font-size: 12px;
+  opacity: 0.72;
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.ruleChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.04);
+  font-weight: 900;
+  font-size: 12px;
+}
+
+/* Stream: más grande */
+.streamRoot .statusBadge {
+  padding: 10px 14px;
+  font-size: 14px;
+}
+
+.streamRoot .ruleChip {
+  padding: 8px 12px;
+  font-size: 13px;
+}
+
+.animSelector {
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.animOption {
+  flex: 1;
+  padding: 10px;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.04);
+  font-weight: 900;
+  cursor: pointer;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  justify-content: center;
+}
+
+.animOption.active {
+  border-color: rgba(168, 85, 247, 0.6);
+  background: rgba(168, 85, 247, 0.18);
+}
+
+.badgeWarn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-weight: 900;
+  font-size: 12px;
+  border: 1px solid rgba(251, 191, 36, 0.35);
+  background: rgba(251, 191, 36, 0.12);
+}

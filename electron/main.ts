@@ -1,0 +1,171 @@
+import { app, BrowserWindow, ipcMain, shell } from "electron";
+import { fileURLToPath } from "node:url";
+import path from "node:path";
+import { registerLicenseIpc } from "./licenseIpc";
+import { registerOverlayIpc } from "./overlayIpc";
+import { registerUpdater } from "./updater";
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
+process.env.APP_ROOT = path.join(__dirname, ".");
+
+export const VITE_DEV_SERVER_URL = process.env["VITE_DEV_SERVER_URL"];
+export const MAIN_DIST = path.join(process.env.APP_ROOT, "dist-electron");
+export const RENDERER_DIST = path.join(process.env.APP_ROOT, "dist");
+
+process.env.VITE_PUBLIC = VITE_DEV_SERVER_URL
+  ? path.join(process.env.APP_ROOT, "public")
+  : RENDERER_DIST;
+
+let win: BrowserWindow | null = null;
+
+const DEEP_LINK_SCHEME = "twitch-sorteos";
+let lastOAuthUrl: string | null = null;
+
+// ✅ Enviar deep link al renderer
+function sendOAuthToRenderer(url: string) {
+  lastOAuthUrl = url;
+
+  // ✅ si llegó el callback, cerramos ventana OAuth si está abierta
+  if (oauthWin && !oauthWin.isDestroyed()) {
+    oauthWin.close();
+    oauthWin = null;
+  }
+
+  if (win && !win.isDestroyed()) {
+    win.webContents.send("oauth:callback", url);
+    if (win.isMinimized()) win.restore();
+    win.focus();
+    registerUpdater(win);
+  }
+}
+
+// ✅ Windows/Linux: el deep link llega como argumento del proceso
+function handleArgvDeepLink(argv: string[]) {
+  const url = argv.find((a) => a.startsWith(`${DEEP_LINK_SCHEME}://`));
+  if (url) sendOAuthToRenderer(url);
+}
+
+// ✅ SINGLE INSTANCE (CLAVE para Windows)
+const gotLock = app.requestSingleInstanceLock();
+if (!gotLock) {
+  app.quit();
+} else {
+  app.on("second-instance", (_event, argv) => {
+    if (win) {
+      if (win.isMinimized()) win.restore();
+      win.focus();
+    }
+    handleArgvDeepLink(argv);
+  });
+}
+
+// ✅ macOS: open-url
+app.on("open-url", (event, url) => {
+  event.preventDefault();
+  sendOAuthToRenderer(url);
+});
+
+// ✅ Registrar protocolo
+function registerProtocol() {
+  try {
+    if (process.defaultApp) {
+      // DEV: electron-vite suele necesitar pasar el entry file
+      const entry = process.argv[1];
+      if (entry) {
+        app.setAsDefaultProtocolClient(DEEP_LINK_SCHEME, process.execPath, [
+          entry,
+        ]);
+      } else {
+        app.setAsDefaultProtocolClient(DEEP_LINK_SCHEME);
+      }
+    } else {
+      // PROD
+      app.setAsDefaultProtocolClient(DEEP_LINK_SCHEME);
+    }
+  } catch (e) {
+    // no rompe si falla
+  }
+}
+
+function createWindow() {
+  win = new BrowserWindow({
+    width: 1100,
+    height: 720,
+    webPreferences: {
+      // ⚠️ IMPORTANTE: electron-vite suele generar preload.mjs
+      preload: path.join(__dirname, "preload.mjs"),
+      contextIsolation: true,
+      nodeIntegration: false,
+    },
+  });
+
+  win.webContents.on("did-finish-load", () => {
+    win?.webContents.send("main-process-message", new Date().toLocaleString());
+  });
+
+  if (VITE_DEV_SERVER_URL) {
+    win.loadURL(VITE_DEV_SERVER_URL);
+  } else {
+    win.loadFile(path.join(RENDERER_DIST, "index.html"));
+  }
+
+  // ✅ si la app se abrió por deep link en el primer arranque
+  handleArgvDeepLink(process.argv);
+}
+
+app.on("window-all-closed", () => {
+  if (process.platform !== "darwin") app.quit();
+  win = null;
+});
+
+app.on("activate", () => {
+  if (BrowserWindow.getAllWindows().length === 0) createWindow();
+});
+
+// Mantén una referencia para poder cerrarla luego
+let oauthWin: BrowserWindow | null = null;
+
+ipcMain.handle("oauth:twitchStart", async (_evt, url: string) => {
+  // Si ya hay una abierta, enfócala
+  if (oauthWin && !oauthWin.isDestroyed()) {
+    oauthWin.focus();
+    return true;
+  }
+
+  oauthWin = new BrowserWindow({
+    width: 520,
+    height: 720,
+    resizable: false,
+    minimizable: true,
+    maximizable: false,
+    title: "Conectar Twitch",
+    parent: win ?? undefined, // usa tu window principal si existe
+    modal: false,
+    show: true,
+    webPreferences: {
+      contextIsolation: true,
+      nodeIntegration: false,
+    },
+  });
+
+  oauthWin.on("closed", () => {
+    oauthWin = null;
+  });
+
+  await oauthWin.loadURL(url);
+  return true;
+});
+
+ipcMain.handle("oauth:getLast", async () => {
+  return lastOAuthUrl; // variable que ya tienes en main.ts
+});
+
+app.whenReady().then(() => {
+  registerProtocol();
+
+  registerLicenseIpc();
+  registerOverlayIpc();
+
+  createWindow();
+});

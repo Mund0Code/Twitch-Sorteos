@@ -1,0 +1,19 @@
+:root[data-theme="neon"] {
+  --bg-main: #050610;
+  --bg-card: rgba(255, 255, 255, 0.06);
+  --border-soft: rgba(140, 255, 251, 0.14);
+  --text-main: rgba(255, 255, 255, 0.92);
+  --text-muted: rgba(255, 255, 255, 0.68);
+
+  --accent: #22d3ee; /* cyan neon */
+  --accent-strong: #a78bfa; /* violet glow */
+
+  --danger: #fb7185;
+  --warn: #fbbf24;
+  --ok: #34d399;
+
+  /* ✅ extras de glow */
+  --glow-1: rgba(34, 211, 238, 0.28);
+  --glow-2: rgba(167, 139, 250, 0.22);
+  --glow-strong: rgba(34, 211, 238, 0.45);
+}

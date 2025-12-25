@@ -1,0 +1,14 @@
+:root[data-theme="minimal"] {
+  --bg-main: #0a0a0a;
+  --bg-card: rgba(255, 255, 255, 0.05);
+  --border-soft: rgba(255, 255, 255, 0.1);
+  --text-main: rgba(255, 255, 255, 0.9);
+  --text-muted: rgba(255, 255, 255, 0.6);
+
+  --accent: #ffffff;
+  --accent-strong: #d4d4d4;
+
+  --danger: #fb7185;
+  --warn: #fbbf24;
+  --ok: #22c55e;
+}
