@@ -1,12 +1,12 @@
 // src/services/twitchChat.ts
-import tmi from "tmi.js";
+import tmi, { type ChatUserstate, type Client } from "tmi.js";
 
 export type TwitchRole = "broadcaster" | "mod" | "vip" | "sub" | "viewer";
 
 export type JoinAttempt = {
   user: string; // display-name o username
   role: TwitchRole;
-  rawTags: tmi.ChatUserstate;
+  rawTags: ChatUserstate;
 };
 
 export type ControlEvent =
@@ -19,19 +19,24 @@ export type ControlEvent =
   | { type: "leave"; by: string; role: TwitchRole }
   | { type: "status"; by: string; role: TwitchRole };
 
-type ChatCallbacks = {
+export type ChatCallbacks = {
+  /** ✅ compat con tu RaffleScreen actual */
+  onJoin?: (user: string) => void;
+
+  /** ✅ info completa (rol/badges) por si luego filtras subs/mods */
   onJoinAttempt?: (evt: JoinAttempt) => void;
+
   onControl?: (evt: ControlEvent) => void;
   onStatus?: (msg: string) => void;
   onError?: (msg: string) => void;
 };
 
-function getUser(tags: tmi.ChatUserstate) {
+function getUser(tags: ChatUserstate) {
   return String(tags["display-name"] || tags.username || "").trim();
 }
 
-function detectRole(tags: tmi.ChatUserstate): TwitchRole {
-  const badges = tags.badges ?? {};
+function detectRole(tags: ChatUserstate): TwitchRole {
+  const badges = (tags.badges || {}) as Record<string, string>;
 
   if (badges.broadcaster) return "broadcaster";
   if (tags.mod || badges.moderator) return "mod";
@@ -45,11 +50,11 @@ function isModOrBroadcaster(role: TwitchRole) {
 }
 
 export class TwitchChatService {
-  private client: tmi.Client | null = null;
+  private client: Client | null = null;
 
   async disconnect() {
     try {
-      if (this.client) await this.client.disconnect();
+      await this.client?.disconnect();
     } catch {
       // ignore
     } finally {
@@ -58,23 +63,19 @@ export class TwitchChatService {
   }
 
   async connectPro(channel: string, accessToken: string, cb?: ChatCallbacks) {
+    // Si ya hay cliente, lo reiniciamos limpio
     await this.disconnect();
 
-    const cleanChannel = channel.replace(/^#/, "").toLowerCase();
-
-    cb?.onStatus?.("Conectando a Twitch…");
-
-    // MVP: username = canal (si el token pertenece a esa cuenta)
-    const identityUsername = cleanChannel;
+    // Nota: tmi.js usa oauth:xxxxx
+    const identity = {
+      username: channel, // puede ser el login del broadcaster, sirve para conectar
+      password: `oauth:${accessToken}`,
+    };
 
     this.client = new tmi.Client({
-      options: { debug: false, messagesLogLevel: "info" },
-      connection: { secure: true, reconnect: true },
-      identity: {
-        username: identityUsername,
-        password: `oauth:${accessToken}`,
-      },
-      channels: [cleanChannel],
+      options: { debug: false },
+      identity,
+      channels: [channel],
     });
 
     this.client.on("connected", () => cb?.onStatus?.("✅ Chat conectado"));
@@ -86,83 +87,71 @@ export class TwitchChatService {
     );
 
     this.client.on("notice", (_channel: any, msgid: any, message: any) => {
-      cb?.onError?.(`NOTICE(${msgid}): ${message}`);
+      cb?.onError?.(`NOTICE(${String(msgid)}): ${String(message)}`);
     });
 
     this.client.on(
       "message",
-      (_channel: any, tags: any, message: string, self: any) => {
+      (_channel: any, tags: ChatUserstate, message: string, self: boolean) => {
         if (self) return;
 
-        const msgRaw = message.trim();
-        const msg = msgRaw.toLowerCase();
+        const msg = String(message || "")
+          .trim()
+          .toLowerCase();
         const user = getUser(tags);
         if (!user) return;
 
         const role = detectRole(tags);
-
-        // helpers
         const isStaff = isModOrBroadcaster(role);
+
+        // --- ENTRY ---
+        if (msg === "!sorteo") {
+          cb?.onJoinAttempt?.({ user, role, rawTags: tags });
+
+          // ✅ compat con tu UI actual
+          cb?.onJoin?.(user);
+          return;
+        }
 
         // --- MOD COMMANDS ---
         if (msg === "!abrir" && isStaff) {
           cb?.onControl?.({ type: "open", by: user, role });
           return;
         }
-
         if (msg === "!cerrar" && isStaff) {
           cb?.onControl?.({ type: "close", by: user, role });
           return;
         }
-
         if (msg === "!reset" && isStaff) {
-          cb?.onControl?.({ type: "reset", by: user, role } as any);
+          cb?.onControl?.({ type: "reset", by: user, role });
           return;
         }
-
         if (msg === "!reroll" && isStaff) {
-          cb?.onControl?.({ type: "reroll", by: user, role } as any);
+          cb?.onControl?.({ type: "reroll", by: user, role });
           return;
         }
 
-        //!ban @user  / !unban @user
+        // ban/unban simple: "!ban username"
         if (msg.startsWith("!ban ") && isStaff) {
-          const target = msgRaw
-            .split(" ")
-            .slice(1)
-            .join(" ")
-            .trim()
-            .replace(/^@/, "");
-          if (target)
-            cb?.onControl?.({ type: "ban", by: user, role, target } as any);
+          const target = msg.replace("!ban", "").trim();
+          if (target) cb?.onControl?.({ type: "ban", by: user, role, target });
           return;
         }
 
         if (msg.startsWith("!unban ") && isStaff) {
-          const target = msgRaw
-            .split(" ")
-            .slice(1)
-            .join(" ")
-            .trim()
-            .replace(/^@/, "");
+          const target = msg.replace("!unban", "").trim();
           if (target)
-            cb?.onControl?.({ type: "unban", by: user, role, target } as any);
+            cb?.onControl?.({ type: "unban", by: user, role, target });
           return;
         }
 
-        // --- ENTRY ---
-        if (msg === "!sorteo") {
-          cb?.onJoinAttempt?.({ user, role, rawTags: tags });
-          return;
-        }
-
+        // extras
         if (msg === "!salir") {
-          cb?.onControl?.({ type: "leave", by: user, role } as any);
+          cb?.onControl?.({ type: "leave", by: user, role });
           return;
         }
-
         if (msg === "!estado") {
-          cb?.onControl?.({ type: "status", by: user, role } as any);
+          cb?.onControl?.({ type: "status", by: user, role });
           return;
         }
       }
