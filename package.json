@@ -1,13 +1,14 @@
 {
   "name": "twitch-sorteos",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.0.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build && electron-builder",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "dist": "electron-builder --publish never"
   },
   "dependencies": {
     "electron-store": "^11.0.2",
@@ -19,7 +20,7 @@
     "zustand": "^5.0.9"
   },
   "build": {
-    "appId": "com.tusorteo.app",
+    "appId": "com.mundocode.twitchsorteo",
     "productName": "Twitch Sorteos",
     "directories": {
       "output": "release"
@@ -31,8 +32,8 @@
     "publish": [
       {
         "provider": "github",
-        "owner": "juanppdev",
-        "repo": "TU_REPO"
+        "owner": "Mund0Code",
+        "repo": "Twitch-Sorteos"
       }
     ],
     "win": {

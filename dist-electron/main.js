@@ -2894,7 +2894,7 @@ const keyword_1$1 = keyword$1;
 const subschema_1$1 = subschema$1;
 const codegen_1$X = codegen$1;
 const names_1$d = names$3;
-const resolve_1$5 = resolve$4;
+const resolve_1$4 = resolve$4;
 const util_1$X = util$4;
 const errors_1$4 = errors$1;
 function validateFunctionCode$1(it) {
@@ -3021,7 +3021,7 @@ function checkNoDefault$1(it) {
 function updateContext$1(it) {
   const schId = it.schema[it.opts.schemaId];
   if (schId)
-    it.baseId = (0, resolve_1$5.resolveUrl)(it.opts.uriResolver, it.baseId, schId);
+    it.baseId = (0, resolve_1$4.resolveUrl)(it.opts.uriResolver, it.baseId, schId);
 }
 function checkAsyncSchema$1(it) {
   if (it.schema.$async && !it.schemaEnv.$async)
@@ -3038,9 +3038,9 @@ function commentKeyword$1({ gen, schemaEnv, schema: schema2, errSchemaPath, opts
   }
 }
 function returnResults$1(it) {
-  const { gen, schemaEnv, validateName, ValidationError: ValidationError3, opts } = it;
+  const { gen, schemaEnv, validateName, ValidationError: ValidationError2, opts } = it;
   if (schemaEnv.$async) {
-    gen.if((0, codegen_1$X._)`${names_1$d.default.errors} === 0`, () => gen.return(names_1$d.default.data), () => gen.throw((0, codegen_1$X._)`new ${ValidationError3}(${names_1$d.default.vErrors})`));
+    gen.if((0, codegen_1$X._)`${names_1$d.default.errors} === 0`, () => gen.return(names_1$d.default.data), () => gen.throw((0, codegen_1$X._)`new ${ValidationError2}(${names_1$d.default.vErrors})`));
   } else {
     gen.assign((0, codegen_1$X._)`${validateName}.errors`, names_1$d.default.vErrors);
     if (opts.unevaluated)
@@ -3385,32 +3385,32 @@ function getData$1($data, { dataLevel, dataNames, dataPathArr }) {
 validate$1.getData = getData$1;
 var validation_error$1 = {};
 Object.defineProperty(validation_error$1, "__esModule", { value: true });
-let ValidationError$1 = class ValidationError extends Error {
+class ValidationError extends Error {
   constructor(errors2) {
     super("validation failed");
     this.errors = errors2;
     this.ajv = this.validation = true;
   }
-};
-validation_error$1.default = ValidationError$1;
+}
+validation_error$1.default = ValidationError;
 var ref_error$1 = {};
 Object.defineProperty(ref_error$1, "__esModule", { value: true });
-const resolve_1$4 = resolve$4;
-let MissingRefError$1 = class MissingRefError extends Error {
+const resolve_1$3 = resolve$4;
+class MissingRefError extends Error {
   constructor(resolver, baseId, ref2, msg) {
     super(msg || `can't resolve reference ${ref2} from id ${baseId}`);
-    this.missingRef = (0, resolve_1$4.resolveUrl)(resolver, baseId, ref2);
-    this.missingSchema = (0, resolve_1$4.normalizeId)((0, resolve_1$4.getFullPath)(resolver, this.missingRef));
+    this.missingRef = (0, resolve_1$3.resolveUrl)(resolver, baseId, ref2);
+    this.missingSchema = (0, resolve_1$3.normalizeId)((0, resolve_1$3.getFullPath)(resolver, this.missingRef));
   }
-};
-ref_error$1.default = MissingRefError$1;
+}
+ref_error$1.default = MissingRefError;
 var compile$1 = {};
 Object.defineProperty(compile$1, "__esModule", { value: true });
 compile$1.resolveSchema = compile$1.getCompilingSchema = compile$1.resolveRef = compile$1.compileSchema = compile$1.SchemaEnv = void 0;
 const codegen_1$W = codegen$1;
 const validation_error_1$1 = validation_error$1;
 const names_1$c = names$3;
-const resolve_1$3 = resolve$4;
+const resolve_1$2 = resolve$4;
 const util_1$W = util$4;
 const validate_1$3 = validate$1;
 let SchemaEnv$1 = class SchemaEnv {
@@ -3424,7 +3424,7 @@ let SchemaEnv$1 = class SchemaEnv {
     this.schema = env2.schema;
     this.schemaId = env2.schemaId;
     this.root = env2.root || this;
-    this.baseId = (_a = env2.baseId) !== null && _a !== void 0 ? _a : (0, resolve_1$3.normalizeId)(schema2 === null || schema2 === void 0 ? void 0 : schema2[env2.schemaId || "$id"]);
+    this.baseId = (_a = env2.baseId) !== null && _a !== void 0 ? _a : (0, resolve_1$2.normalizeId)(schema2 === null || schema2 === void 0 ? void 0 : schema2[env2.schemaId || "$id"]);
     this.schemaPath = env2.schemaPath;
     this.localRefs = env2.localRefs;
     this.meta = env2.meta;
@@ -3437,7 +3437,7 @@ function compileSchema$1(sch) {
   const _sch = getCompilingSchema$1.call(this, sch);
   if (_sch)
     return _sch;
-  const rootId = (0, resolve_1$3.getFullPath)(this.opts.uriResolver, sch.root.baseId);
+  const rootId = (0, resolve_1$2.getFullPath)(this.opts.uriResolver, sch.root.baseId);
   const { es5, lines } = this.opts.code;
   const { ownProperties } = this.opts;
   const gen = new codegen_1$W.CodeGen(this.scope, { es5, lines, ownProperties });
@@ -3521,7 +3521,7 @@ function compileSchema$1(sch) {
 compile$1.compileSchema = compileSchema$1;
 function resolveRef$1(root2, baseId, ref2) {
   var _a;
-  ref2 = (0, resolve_1$3.resolveUrl)(this.opts.uriResolver, baseId, ref2);
+  ref2 = (0, resolve_1$2.resolveUrl)(this.opts.uriResolver, baseId, ref2);
   const schOrFunc = root2.refs[ref2];
   if (schOrFunc)
     return schOrFunc;
@@ -3538,7 +3538,7 @@ function resolveRef$1(root2, baseId, ref2) {
 }
 compile$1.resolveRef = resolveRef$1;
 function inlineOrCompile$1(sch) {
-  if ((0, resolve_1$3.inlineRef)(sch.schema, this.opts.inlineRefs))
+  if ((0, resolve_1$2.inlineRef)(sch.schema, this.opts.inlineRefs))
     return sch.schema;
   return sch.validate ? sch : compileSchema$1.call(this, sch);
 }
@@ -3560,12 +3560,12 @@ function resolve$3(root2, ref2) {
 }
 function resolveSchema$1(root2, ref2) {
   const p = this.opts.uriResolver.parse(ref2);
-  const refPath = (0, resolve_1$3._getFullPath)(this.opts.uriResolver, p);
-  let baseId = (0, resolve_1$3.getFullPath)(this.opts.uriResolver, root2.baseId, void 0);
+  const refPath = (0, resolve_1$2._getFullPath)(this.opts.uriResolver, p);
+  let baseId = (0, resolve_1$2.getFullPath)(this.opts.uriResolver, root2.baseId, void 0);
   if (Object.keys(root2.schema).length > 0 && refPath === baseId) {
     return getJsonPointer$1.call(this, p, root2);
   }
-  const id2 = (0, resolve_1$3.normalizeId)(refPath);
+  const id2 = (0, resolve_1$2.normalizeId)(refPath);
   const schOrRef = this.refs[id2] || this.schemas[id2];
   if (typeof schOrRef == "string") {
     const sch = resolveSchema$1.call(this, root2, schOrRef);
@@ -3577,12 +3577,12 @@ function resolveSchema$1(root2, ref2) {
     return;
   if (!schOrRef.validate)
     compileSchema$1.call(this, schOrRef);
-  if (id2 === (0, resolve_1$3.normalizeId)(ref2)) {
+  if (id2 === (0, resolve_1$2.normalizeId)(ref2)) {
     const { schema: schema2 } = schOrRef;
     const { schemaId } = this.opts;
     const schId = schema2[schemaId];
     if (schId)
-      baseId = (0, resolve_1$3.resolveUrl)(this.opts.uriResolver, baseId, schId);
+      baseId = (0, resolve_1$2.resolveUrl)(this.opts.uriResolver, baseId, schId);
     return new SchemaEnv$1({ schema: schema2, schemaId, root: root2, baseId });
   }
   return getJsonPointer$1.call(this, p, schOrRef);
@@ -3608,12 +3608,12 @@ function getJsonPointer$1(parsedRef, { baseId, schema: schema2, root: root2 }) {
     schema2 = partSchema;
     const schId = typeof schema2 === "object" && schema2[this.opts.schemaId];
     if (!PREVENT_SCOPE_CHANGE$1.has(part) && schId) {
-      baseId = (0, resolve_1$3.resolveUrl)(this.opts.uriResolver, baseId, schId);
+      baseId = (0, resolve_1$2.resolveUrl)(this.opts.uriResolver, baseId, schId);
     }
   }
   let env2;
   if (typeof schema2 != "boolean" && schema2.$ref && !(0, util_1$W.schemaHasRulesButRef)(schema2, this.RULES)) {
-    const $ref = (0, resolve_1$3.resolveUrl)(this.opts.uriResolver, baseId, schema2.$ref);
+    const $ref = (0, resolve_1$2.resolveUrl)(this.opts.uriResolver, baseId, schema2.$ref);
     env2 = resolveSchema$1.call(this, root2, $ref);
   }
   const { schemaId } = this.opts;
@@ -9762,7 +9762,7 @@ const keyword_1 = keyword;
 const subschema_1 = subschema;
 const codegen_1$n = codegen;
 const names_1$3 = names$1;
-const resolve_1$2 = resolve$1;
+const resolve_1$1 = resolve$1;
 const util_1$s = util$3;
 const errors_1 = errors;
 function validateFunctionCode(it) {
@@ -9889,7 +9889,7 @@ function checkNoDefault(it) {
 function updateContext(it) {
   const schId = it.schema[it.opts.schemaId];
   if (schId)
-    it.baseId = (0, resolve_1$2.resolveUrl)(it.opts.uriResolver, it.baseId, schId);
+    it.baseId = (0, resolve_1$1.resolveUrl)(it.opts.uriResolver, it.baseId, schId);
 }
 function checkAsyncSchema(it) {
   if (it.schema.$async && !it.schemaEnv.$async)
@@ -9906,9 +9906,9 @@ function commentKeyword({ gen, schemaEnv, schema: schema2, errSchemaPath, opts }
   }
 }
 function returnResults(it) {
-  const { gen, schemaEnv, validateName, ValidationError: ValidationError3, opts } = it;
+  const { gen, schemaEnv, validateName, ValidationError: ValidationError2, opts } = it;
   if (schemaEnv.$async) {
-    gen.if((0, codegen_1$n._)`${names_1$3.default.errors} === 0`, () => gen.return(names_1$3.default.data), () => gen.throw((0, codegen_1$n._)`new ${ValidationError3}(${names_1$3.default.vErrors})`));
+    gen.if((0, codegen_1$n._)`${names_1$3.default.errors} === 0`, () => gen.return(names_1$3.default.data), () => gen.throw((0, codegen_1$n._)`new ${ValidationError2}(${names_1$3.default.vErrors})`));
   } else {
     gen.assign((0, codegen_1$n._)`${validateName}.errors`, names_1$3.default.vErrors);
     if (opts.unevaluated)
@@ -10252,31 +10252,43 @@ function getData($data, { dataLevel, dataNames, dataPathArr }) {
 }
 validate.getData = getData;
 var validation_error = {};
-Object.defineProperty(validation_error, "__esModule", { value: true });
-class ValidationError2 extends Error {
-  constructor(errors2) {
-    super("validation failed");
-    this.errors = errors2;
-    this.ajv = this.validation = true;
+var hasRequiredValidation_error;
+function requireValidation_error() {
+  if (hasRequiredValidation_error) return validation_error;
+  hasRequiredValidation_error = 1;
+  Object.defineProperty(validation_error, "__esModule", { value: true });
+  class ValidationError2 extends Error {
+    constructor(errors2) {
+      super("validation failed");
+      this.errors = errors2;
+      this.ajv = this.validation = true;
+    }
   }
+  validation_error.default = ValidationError2;
+  return validation_error;
 }
-validation_error.default = ValidationError2;
 var ref_error = {};
-Object.defineProperty(ref_error, "__esModule", { value: true });
-const resolve_1$1 = resolve$1;
-class MissingRefError2 extends Error {
-  constructor(resolver, baseId, ref2, msg) {
-    super(msg || `can't resolve reference ${ref2} from id ${baseId}`);
-    this.missingRef = (0, resolve_1$1.resolveUrl)(resolver, baseId, ref2);
-    this.missingSchema = (0, resolve_1$1.normalizeId)((0, resolve_1$1.getFullPath)(resolver, this.missingRef));
+var hasRequiredRef_error;
+function requireRef_error() {
+  if (hasRequiredRef_error) return ref_error;
+  hasRequiredRef_error = 1;
+  Object.defineProperty(ref_error, "__esModule", { value: true });
+  const resolve_12 = resolve$1;
+  class MissingRefError2 extends Error {
+    constructor(resolver, baseId, ref2, msg) {
+      super(msg || `can't resolve reference ${ref2} from id ${baseId}`);
+      this.missingRef = (0, resolve_12.resolveUrl)(resolver, baseId, ref2);
+      this.missingSchema = (0, resolve_12.normalizeId)((0, resolve_12.getFullPath)(resolver, this.missingRef));
+    }
   }
+  ref_error.default = MissingRefError2;
+  return ref_error;
 }
-ref_error.default = MissingRefError2;
 var compile = {};
 Object.defineProperty(compile, "__esModule", { value: true });
 compile.resolveSchema = compile.getCompilingSchema = compile.resolveRef = compile.compileSchema = compile.SchemaEnv = void 0;
 const codegen_1$m = codegen;
-const validation_error_1 = validation_error;
+const validation_error_1 = requireValidation_error();
 const names_1$2 = names$1;
 const resolve_1 = resolve$1;
 const util_1$r = util$3;
@@ -10549,8 +10561,8 @@ uri$1.default = uri;
   Object.defineProperty(exports$1, "CodeGen", { enumerable: true, get: function() {
     return codegen_12.CodeGen;
   } });
-  const validation_error_12 = validation_error;
-  const ref_error_12 = ref_error;
+  const validation_error_12 = requireValidation_error();
+  const ref_error_12 = requireRef_error();
   const rules_12 = rules;
   const compile_12 = compile;
   const codegen_2 = codegen;
@@ -11143,7 +11155,7 @@ id.default = def$s;
 var ref = {};
 Object.defineProperty(ref, "__esModule", { value: true });
 ref.callRef = ref.getValidate = void 0;
-const ref_error_1$1 = ref_error;
+const ref_error_1$1 = requireRef_error();
 const code_1$8 = code;
 const codegen_1$l = codegen;
 const names_1$1 = names$1;
@@ -12605,7 +12617,7 @@ Object.defineProperty(discriminator, "__esModule", { value: true });
 const codegen_1 = codegen;
 const types_1$6 = types$1;
 const compile_1 = compile;
-const ref_error_1 = ref_error;
+const ref_error_1 = requireRef_error();
 const util_1$7 = util$3;
 const error$1 = {
   message: ({ params: { discrError, tagName } }) => discrError === types_1$6.DiscrError.Tag ? `tag "${tagName}" must be string` : `value of tag "${tagName}" must be in oneOf`,
@@ -13002,11 +13014,11 @@ const require$$3 = {
   Object.defineProperty(exports$1, "CodeGen", { enumerable: true, get: function() {
     return codegen_12.CodeGen;
   } });
-  var validation_error_12 = validation_error;
+  var validation_error_12 = requireValidation_error();
   Object.defineProperty(exports$1, "ValidationError", { enumerable: true, get: function() {
     return validation_error_12.default;
   } });
-  var ref_error_12 = ref_error;
+  var ref_error_12 = requireRef_error();
   Object.defineProperty(exports$1, "MissingRefError", { enumerable: true, get: function() {
     return ref_error_12.default;
   } });
@@ -28630,17 +28642,31 @@ function registerUpdater(win2) {
   function send(status) {
     win2.webContents.send("update:status", status);
   }
+  send({ state: "boot", version: app$1.getVersion() });
   main$1.autoUpdater.on("checking-for-update", () => send({ state: "checking" }));
   main$1.autoUpdater.on(
     "update-available",
-    (info) => send({ state: "available", info })
+    (info) => send({
+      state: "available",
+      version: info == null ? void 0 : info.version,
+      releaseNotes: (info == null ? void 0 : info.releaseNotes) ?? null,
+      info
+    })
   );
   main$1.autoUpdater.on("update-not-available", () => send({ state: "none" }));
   main$1.autoUpdater.on(
     "download-progress",
-    (p) => send({ state: "downloading", percent: p.percent })
+    (p) => send({ state: "downloading", percent: p == null ? void 0 : p.percent })
   );
-  main$1.autoUpdater.on("update-downloaded", () => send({ state: "downloaded" }));
+  main$1.autoUpdater.on(
+    "update-downloaded",
+    (info) => send({
+      state: "downloaded",
+      version: info == null ? void 0 : info.version,
+      releaseNotes: (info == null ? void 0 : info.releaseNotes) ?? null,
+      info
+    })
+  );
   main$1.autoUpdater.on("error", (e) => send({ state: "error", message: String(e) }));
   ipcMain$1.handle("update:check", async () => {
     main$1.autoUpdater.checkForUpdates();
@@ -28670,7 +28696,6 @@ function sendOAuthToRenderer(url) {
     win.webContents.send("oauth:callback", url);
     if (win.isMinimized()) win.restore();
     win.focus();
-    registerUpdater(win);
   }
 }
 function handleArgvDeepLink(argv) {
@@ -28774,6 +28799,7 @@ app$1.whenReady().then(() => {
   registerLicenseIpc();
   registerOverlayIpc();
   createWindow();
+  if (win) registerUpdater(win);
 });
 export {
   MAIN_DIST,

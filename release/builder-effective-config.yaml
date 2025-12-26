@@ -1,0 +1,18 @@
+directories:
+  output: release
+  buildResources: build
+appId: com.tusorteo.app
+productName: Twitch Sorteos
+files:
+  - filter:
+      - dist/**
+      - dist-electron/**
+publish:
+  - provider: github
+    owner: Mund0Code
+    repo: Twitch-Sorteos
+win:
+  target: nsis
+mac:
+  target: dmg
+electronVersion: 30.5.1

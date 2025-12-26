@@ -36,7 +36,6 @@ function sendOAuthToRenderer(url: string) {
     win.webContents.send("oauth:callback", url);
     if (win.isMinimized()) win.restore();
     win.focus();
-    registerUpdater(win);
   }
 }
 
@@ -168,4 +167,5 @@ app.whenReady().then(() => {
   registerOverlayIpc();
 
   createWindow();
+  if (win) registerUpdater(win);
 });

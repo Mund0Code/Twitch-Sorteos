@@ -563,3 +563,35 @@ select {
   border: 1px solid rgba(251, 191, 36, 0.35);
   background: rgba(251, 191, 36, 0.12);
 }
+
+/* --- Auto-update popover --- */
+.updatePopover {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 10px);
+  width: 380px;
+  padding: 12px 12px;
+  border-radius: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(18, 18, 18, 0.96);
+  box-shadow: 0 22px 60px rgba(0, 0, 0, 0.45);
+  z-index: 999;
+}
+.updateTitle {
+  font-weight: 950;
+  font-size: 13px;
+}
+.updateNotes {
+  margin-top: 8px;
+  font-size: 12px;
+  opacity: 0.78;
+  max-height: 160px;
+  overflow: auto;
+  white-space: pre-wrap;
+}
+.updateActions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  margin-top: 12px;
+}
