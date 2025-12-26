@@ -29,7 +29,7 @@ export default function App() {
 
   const [step, setStep] = useState<Step>("TWITCH_USER");
   const [loading, setLoading] = useState(true);
-  const [license, setLicense] = useState<LicenseStatus>({
+  const [_license, setLicense] = useState<LicenseStatus>({
     valid: false,
     expiresAt: null,
   });

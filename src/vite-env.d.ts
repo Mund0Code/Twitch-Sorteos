@@ -2,6 +2,14 @@
 
 export {};
 
+type OverlayState = {
+  title?: string;
+  prize?: string;
+  winner?: string | null;
+  picking?: boolean;
+  animation?: string; // ✅ añade esto
+};
+
 declare global {
   interface Window {
     licenseApi: {
@@ -18,16 +26,13 @@ declare global {
       open: () => Promise<boolean>;
       close: () => Promise<boolean>;
       isOpen: () => Promise<boolean>;
-      setState: (state: {
-        title?: string;
-        prize?: string;
-        winner?: string | null;
-        picking?: boolean;
-      }) => Promise<boolean>;
-      onUpdate: (cb: (state: any) => void) => void;
+      setState: (state: OverlayState) => Promise<any>;
+      onUpdate: (cb: (state: OverlayState) => void) => () => void;
     };
     oauthApi?: {
-      onCallback: (cb: (url: string) => void) => void;
+      twitchStart: (url: string) => Promise<boolean>;
+      getLast: () => Promise<string | null>;
+      onCallback: (cb: (url: string) => void) => () => void;
     };
     updateApi?: {
       check: () => Promise<boolean>;

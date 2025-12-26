@@ -85,85 +85,88 @@ export class TwitchChatService {
       cb?.onStatus?.("⚠️ Chat desconectado")
     );
 
-    this.client.on("notice", (_channel, msgid, message) => {
+    this.client.on("notice", (_channel: any, msgid: any, message: any) => {
       cb?.onError?.(`NOTICE(${msgid}): ${message}`);
     });
 
-    this.client.on("message", (_channel, tags, message, self) => {
-      if (self) return;
+    this.client.on(
+      "message",
+      (_channel: any, tags: any, message: string, self: any) => {
+        if (self) return;
 
-      const msgRaw = message.trim();
-      const msg = msgRaw.toLowerCase();
-      const user = getUser(tags);
-      if (!user) return;
+        const msgRaw = message.trim();
+        const msg = msgRaw.toLowerCase();
+        const user = getUser(tags);
+        if (!user) return;
 
-      const role = detectRole(tags);
+        const role = detectRole(tags);
 
-      // helpers
-      const isStaff = isModOrBroadcaster(role);
+        // helpers
+        const isStaff = isModOrBroadcaster(role);
 
-      // --- MOD COMMANDS ---
-      if (msg === "!abrir" && isStaff) {
-        cb?.onControl?.({ type: "open", by: user, role });
-        return;
+        // --- MOD COMMANDS ---
+        if (msg === "!abrir" && isStaff) {
+          cb?.onControl?.({ type: "open", by: user, role });
+          return;
+        }
+
+        if (msg === "!cerrar" && isStaff) {
+          cb?.onControl?.({ type: "close", by: user, role });
+          return;
+        }
+
+        if (msg === "!reset" && isStaff) {
+          cb?.onControl?.({ type: "reset", by: user, role } as any);
+          return;
+        }
+
+        if (msg === "!reroll" && isStaff) {
+          cb?.onControl?.({ type: "reroll", by: user, role } as any);
+          return;
+        }
+
+        //!ban @user  / !unban @user
+        if (msg.startsWith("!ban ") && isStaff) {
+          const target = msgRaw
+            .split(" ")
+            .slice(1)
+            .join(" ")
+            .trim()
+            .replace(/^@/, "");
+          if (target)
+            cb?.onControl?.({ type: "ban", by: user, role, target } as any);
+          return;
+        }
+
+        if (msg.startsWith("!unban ") && isStaff) {
+          const target = msgRaw
+            .split(" ")
+            .slice(1)
+            .join(" ")
+            .trim()
+            .replace(/^@/, "");
+          if (target)
+            cb?.onControl?.({ type: "unban", by: user, role, target } as any);
+          return;
+        }
+
+        // --- ENTRY ---
+        if (msg === "!sorteo") {
+          cb?.onJoinAttempt?.({ user, role, rawTags: tags });
+          return;
+        }
+
+        if (msg === "!salir") {
+          cb?.onControl?.({ type: "leave", by: user, role } as any);
+          return;
+        }
+
+        if (msg === "!estado") {
+          cb?.onControl?.({ type: "status", by: user, role } as any);
+          return;
+        }
       }
-
-      if (msg === "!cerrar" && isStaff) {
-        cb?.onControl?.({ type: "close", by: user, role });
-        return;
-      }
-
-      if (msg === "!reset" && isStaff) {
-        cb?.onControl?.({ type: "reset", by: user, role } as any);
-        return;
-      }
-
-      if (msg === "!reroll" && isStaff) {
-        cb?.onControl?.({ type: "reroll", by: user, role } as any);
-        return;
-      }
-
-      //!ban @user  / !unban @user
-      if (msg.startsWith("!ban ") && isStaff) {
-        const target = msgRaw
-          .split(" ")
-          .slice(1)
-          .join(" ")
-          .trim()
-          .replace(/^@/, "");
-        if (target)
-          cb?.onControl?.({ type: "ban", by: user, role, target } as any);
-        return;
-      }
-
-      if (msg.startsWith("!unban ") && isStaff) {
-        const target = msgRaw
-          .split(" ")
-          .slice(1)
-          .join(" ")
-          .trim()
-          .replace(/^@/, "");
-        if (target)
-          cb?.onControl?.({ type: "unban", by: user, role, target } as any);
-        return;
-      }
-
-      // --- ENTRY ---
-      if (msg === "!sorteo") {
-        cb?.onJoinAttempt?.({ user, role, rawTags: tags });
-        return;
-      }
-
-      if (msg === "!salir") {
-        cb?.onControl?.({ type: "leave", by: user, role } as any);
-        return;
-      }
-
-      if (msg === "!estado") {
-        cb?.onControl?.({ type: "status", by: user, role } as any);
-        return;
-      }
-    });
+    );
 
     try {
       await this.client.connect();
