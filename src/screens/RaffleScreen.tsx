@@ -565,7 +565,7 @@ export default function RaffleScreen() {
 
     try {
       await chatRef.current.connectPro(channel, access, {
-        onJoin: (payload) => {
+        onJoin: (payload: any) => {
           // payload viene con roles ✅ (según me dijiste)
           const username = String(
             payload?.username ?? payload?.user ?? payload ?? ""

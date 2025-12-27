@@ -7,7 +7,7 @@ type OverlayState = {
   prize?: string;
   winner?: string | null;
   picking?: boolean;
-  animation?: string; // ✅ añade esto
+  animation?: string; // ✅ para overlay pro
 };
 
 declare global {
@@ -22,18 +22,21 @@ declare global {
       clear: () => Promise<boolean>;
       startTrial: (twitchUser?: string) => Promise<any>;
     };
+
     overlayApi: {
       open: () => Promise<boolean>;
       close: () => Promise<boolean>;
       isOpen: () => Promise<boolean>;
       setState: (state: OverlayState) => Promise<any>;
-      onUpdate: (cb: (state: OverlayState) => void) => () => void;
+      onUpdate: (cb: (state: OverlayState) => void) => () => void; // ✅ devuelve unsubscribe
     };
+
     oauthApi?: {
       twitchStart: (url: string) => Promise<boolean>;
       getLast: () => Promise<string | null>;
       onCallback: (cb: (url: string) => void) => () => void;
     };
+
     updateApi?: {
       check: () => Promise<boolean>;
       install: () => Promise<boolean>;
