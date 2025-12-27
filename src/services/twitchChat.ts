@@ -23,8 +23,11 @@ export type ControlEvent =
   | { type: "status"; by: string; role: TwitchRole };
 
 export type ChatCallbacks = {
-  // ✅ tu RaffleScreen lo usa con payload
+  // el join completo (cuando llega !sorteo)
   onJoin?: (payload: JoinPayload) => void;
+
+  // ✅ compat con tu RaffleScreen: te avisa antes/además con {user, role}
+  onJoinAttempt?: (payload: { user: string; role: TwitchRole }) => void;
 
   onControl?: (evt: ControlEvent) => void;
   onStatus?: (msg: string) => void;
@@ -146,6 +149,8 @@ export class TwitchChatService {
 
         // --- ENTRY ---
         if (msg === "!sorteo") {
+          cb?.onJoinAttempt?.({ user: username, role });
+
           cb?.onJoin?.({
             username,
             isSub: !!tags?.subscriber,

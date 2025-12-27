@@ -747,7 +747,7 @@ export default function RaffleScreen() {
           }
         },
 
-        onJoinAttempt: ({ user, role }) => {
+        onJoinAttempt: ({ user, role }: { user: string; role: string }) => {
           if (!raffle) return;
 
           const key = user.toLowerCase();
