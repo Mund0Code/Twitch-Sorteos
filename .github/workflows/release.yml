@@ -9,13 +9,8 @@ permissions:
   contents: write
 
 jobs:
-  build:
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [windows-latest, macos-latest]
-
-    runs-on: ${{ matrix.os }}
+  release:
+    runs-on: windows-latest
 
     steps:
       - name: Checkout
@@ -30,12 +25,7 @@ jobs:
       - name: Install deps
         run: npm ci
 
-      - name: Build app
-        run: npm run build
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Publish Release
+      - name: Build & Publish (Electron)
         run: npm run release
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
