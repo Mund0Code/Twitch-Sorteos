@@ -32,6 +32,8 @@ jobs:
 
       - name: Build app
         run: npm run build
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Release (electron-builder)
         env:
