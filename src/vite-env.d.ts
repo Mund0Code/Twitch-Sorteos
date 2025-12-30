@@ -23,6 +23,10 @@ declare global {
       startTrial: (twitchUser?: string) => Promise<any>;
     };
 
+    deviceApi?: {
+      getId: () => Promise<string>;
+    };
+
     overlayApi: {
       open: () => Promise<boolean>;
       close: () => Promise<boolean>;

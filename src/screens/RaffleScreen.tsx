@@ -24,15 +24,13 @@ import { throttle } from "../utils/throttle";
 
 import { canJoin, resetCooldowns } from "../services/raffleGate"; // ajusta path si hace falta
 
-import UpdateBadge from "../components/YpdateBadge";
-
 import {
   recordJoinAttempt,
   isLocked,
   getLockSecondsLeft,
-  lockNow,
-  resetLimiter,
 } from "../services/raidLimiter";
+
+import { RaffleHeader } from "../components/raffle/RaffleHeader";
 
 type Raffle = {
   id: string;
@@ -140,7 +138,15 @@ function toastColors(kind: ToastKind) {
   return { border: "rgba(255,255,255,0.20)", bg: "rgba(0,0,0,0.35)" };
 }
 
-export default function RaffleScreen() {
+type RaffleScreenProps = {
+  appVersion?: string;
+  openNotes?: () => void;
+};
+
+export default function RaffleScreen({
+  appVersion,
+  openNotes,
+}: RaffleScreenProps) {
   // ✅ UI Mode (Admin / Stream)
   const { mode, toggleMode, setMode } = useUiStore();
   const isStream = mode === "stream";
@@ -176,6 +182,10 @@ export default function RaffleScreen() {
   const pendingChannelRef = useRef<string | null>(null);
 
   const { rules, setRules, toggleOpen } = useRaffleRulesStore();
+
+  const proButtonLabel = twitchConnecting
+    ? "Conectando..."
+    : "OAuth + Conectar Chat (!sorteo)";
 
   const status = useMemo(() => {
     if (picking) return "picking" as const;
@@ -214,6 +224,12 @@ export default function RaffleScreen() {
   const clearFeed = useActivityStore((s) => s.clear);
 
   const { animation } = useAnimationStore();
+
+  const [version, setVersion] = useState("");
+
+  useEffect(() => {
+    setVersion(window.appApi?.version?.() ?? "");
+  }, []);
 
   useEffect(() => {
     const t = setInterval(() => {
@@ -885,7 +901,16 @@ export default function RaffleScreen() {
 
     try {
       showToast("Abriendo Twitch OAuth…", "info", 1600);
-      const startUrl = "http://localhost:3001/auth/twitch/start";
+      const base = import.meta.env.VITE_API_URL ?? "http://127.0.0.1:3001";
+      const deviceId = await window.deviceApi?.getId();
+
+      if (!deviceId) {
+        throw new Error("Missing deviceId (deviceApi.getId)");
+      }
+
+      const startUrl = `${base}/auth/twitch/start?deviceId=${encodeURIComponent(
+        deviceId
+      )}`;
       await window.oauthApi?.twitchStart?.(startUrl);
     } catch (e) {
       console.error(e);
@@ -1003,250 +1028,43 @@ export default function RaffleScreen() {
       )}
 
       <div className="card" style={{ width: 1050, maxWidth: "95vw" }}>
-        <div className="topbar">
-          <div>
-            <h1 className="title" style={{ marginBottom: 4 }}>
-              Twitch Sorteos{" "}
-              {licenseInfo.valid ? (
-                <span className="badgePro">
-                  PRO · {licenseInfo.daysLeft ?? "—"} días
-                </span>
-              ) : (
-                <span className="badge">FREE</span>
-              )}
-              {twitchConnected && (
-                <span className="badgePro">Chat conectado</span>
-              )}
-              {isStream && <span className="badgePro">STREAM</span>}
-            </h1>
-
-            <span className={`statusBadge ${statusLabel.cls}`}>
-              {statusLabel.txt}
-            </span>
-
-            {slowMode && <span className="badgeWarn">🐢 Slow {slowLeft}s</span>}
-
-            <div className="rulesLine">
-              <span className="ruleChip">
-                🧩 Entradas: <b>{gateLabel}</b>
-              </span>
-              <span className="ruleChip">
-                ⏱ Cooldown: <b>{rules.cooldownSec}s</b>
-              </span>
-              <span className="ruleChip">
-                ✨ Únicos: <b>{rules.uniqueOnly ? "ON" : "OFF"}</b>
-              </span>
-              <span className="ruleChip">
-                🔢 Máx: <b>{rules.maxEntries}</b>
-              </span>
-            </div>
-
-            <button
-              className={rules.isOpen ? "btnSecondary" : "btnPrimary"}
-              onClick={toggleOpen}
-              title="Abrir/Cerrar entradas del sorteo"
-            >
-              {rules.isOpen ? "🔒 Cerrar entradas" : "🟢 Abrir entradas"}
-            </button>
-
-            <div style={{ fontSize: 13, opacity: 0.75 }}>
-              Participantes: <b>{stats.total}</b> · Únicos:{" "}
-              <b>{stats.unique}</b>
-              <span style={{ marginLeft: 10, opacity: 0.6 }}>
-                {raffle ? `Sorteo: ${raffle.title}` : "Sin sorteo activo"}
-              </span>
-              <span style={{ marginLeft: 10, opacity: 0.6 }}>
-                (F11: {isStream ? "Admin" : "Stream"})
-              </span>
-            </div>
-          </div>
-
-          <div className="topbarActions">
-            {/* ✅ Toggle visible */}
-            <div className="btnGroup">
-              <button
-                className={isStream ? "btnPrimary" : "btnSecondary"}
-                onClick={() =>
-                  isStream ? setMode("admin") : setMode("stream")
-                }
-                title="Cambiar modo (F11)"
-              >
-                {isStream ? "🛠 Admin" : "🎬 Stream"}
-              </button>
-            </div>
-
-            <div className="btnGroup">
-              <button className="btnSecondary" onClick={createNewRaffle}>
-                ➕ Nuevo
-              </button>
-
-              <button
-                className="btnSecondary"
-                onClick={resetParticipants}
-                disabled={!raffle}
-                title="Vacía participantes y ganador"
-              >
-                🧹 Limpiar
-              </button>
-
-              <button
-                className="btnDanger"
-                onClick={clearAll}
-                title="Borra todo local"
-              >
-                🗑️ Reset
-              </button>
-            </div>
-
-            <div className="btnGroup">
-              {overlayOpen ? (
-                <button className="btnSecondary" onClick={closeOverlay}>
-                  ✖ Cerrar
-                </button>
-              ) : (
-                <button className="btnSecondary" onClick={openOverlay}>
-                  🧿 Overlay
-                </button>
-              )}
-            </div>
-
-            <UpdateBadge />
-
-            <button
-              className="btnDanger"
-              onClick={() => {
-                // cierra entradas si están abiertas
-                if (rules.isOpen) toggleOpen();
-                // bloquea 60s
-                lockNow(60_000);
-                pushFeed({
-                  kind: "warn",
-                  title: "🚨 PANIC",
-                  meta: "Entradas cerradas + slow mode 60s",
-                });
-              }}
-            >
-              🚨 Panic
-            </button>
-
-            <button
-              className="btnSecondary"
-              onClick={() => {
-                resetLimiter();
-                pushFeed({ kind: "info", title: "Slow mode reseteado" });
-              }}
-            >
-              ♻ Reset slow
-            </button>
-
-            <details className="proPanel">
-              <summary className="proSummary">
-                <span>🟣 PRO</span>
-                <span className="proHint">
-                  {twitchConnected
-                    ? " Conectado"
-                    : twitchConnecting
-                    ? " Conectando…"
-                    : " Desconectado"}
-                </span>
-              </summary>
-
-              <div className="proActions">
-                {!twitchConnected ? (
-                  <button
-                    className="btnPrimary"
-                    onClick={connectTwitchOAuthAndChat}
-                    disabled={twitchConnecting}
-                  >
-                    {twitchConnecting
-                      ? "⏳ Conectando…"
-                      : "OAuth + Conectar Chat (!sorteo)"}
-                  </button>
-                ) : (
-                  <button
-                    className="btnSecondary"
-                    disabled={!twitchConnected && !twitchConnecting}
-                    onClick={disconnectTwitch}
-                  >
-                    🔌 Desconectar
-                  </button>
-                )}
-
-                <div className="proNote">
-                  Tip: en Twitch escribe <b>!sorteo</b> para entrar.
-                </div>
-              </div>
-              <div style={{ marginTop: 10 }}>
-                <div className="proNote" style={{ marginBottom: 8 }}>
-                  Reglas del sorteo (PRO)
-                </div>
-
-                <div className="row2" style={{ gap: 10 }}>
-                  <div>
-                    <label className="label">Estado</label>
-                    <button
-                      className={rules.isOpen ? "btnPrimary" : "btnSecondary"}
-                      onClick={toggleOpen}
-                      title="Abre/cierra el sorteo (mods también con !abrir/!cerrar)"
-                    >
-                      {rules.isOpen ? "🟢 Abierto" : "🔴 Cerrado"}
-                    </button>
-                  </div>
-
-                  <div>
-                    <label className="label">Quién puede entrar</label>
-                    <select
-                      className="input"
-                      value={rules.gate}
-                      onChange={(e) =>
-                        setRules({ gate: e.target.value as any })
-                      }
-                    >
-                      <option value="everyone">👥 Todos</option>
-                      <option value="subs">⭐ Solo Subs</option>
-                      <option value="mods_vips">🛡 Mods + VIPs</option>
-                    </select>
-                  </div>
-                </div>
-
-                <div className="row2" style={{ gap: 10, marginTop: 10 }}>
-                  <div>
-                    <label className="label">Cooldown (seg)</label>
-                    <input
-                      className="input"
-                      type="number"
-                      min={0}
-                      value={rules.cooldownSec}
-                      onChange={(e) =>
-                        setRules({ cooldownSec: Number(e.target.value) })
-                      }
-                    />
-                  </div>
-
-                  <div>
-                    <label className="label">Entradas</label>
-                    <button
-                      className={
-                        rules.uniqueOnly ? "btnPrimary" : "btnSecondary"
-                      }
-                      onClick={() =>
-                        setRules({ uniqueOnly: !rules.uniqueOnly })
-                      }
-                      title="Si está activo: 1 entrada por usuario"
-                    >
-                      {rules.uniqueOnly ? "✅ 1 por usuario" : "♻️ Repetidas"}
-                    </button>
-                  </div>
-                </div>
-
-                <div className="proNote" style={{ marginTop: 10 }}>
-                  Comandos: <b>!sorteo</b> entra · mods: <b>!abrir</b>/
-                  <b>!cerrar</b>
-                </div>
-              </div>
-            </details>
-          </div>
-        </div>
+        <RaffleHeader
+          licenseInfo={licenseInfo}
+          twitchConnected={twitchConnected}
+          isStream={isStream}
+          overlayOpen={overlayOpen}
+          statsTotal={stats.total}
+          statsUnique={stats.unique}
+          raffleTitleLabel={
+            raffle ? `Sorteo: ${raffle.title}` : "Sin sorteo activo"
+          }
+          appVersion={appVersion}
+          openNotes={openNotes}
+          statusLabel={statusLabel}
+          gateLabel={gateLabel}
+          isOpen={rules.isOpen}
+          cooldownSec={rules.cooldownSec}
+          uniqueOnly={rules.uniqueOnly}
+          maxEntries={rules.maxEntries}
+          slowMode={slowMode}
+          slowLeft={slowLeft}
+          onToggleStream={() =>
+            isStream ? setMode("admin") : setMode("stream")
+          }
+          onToggleOpen={toggleOpen}
+          onNew={createNewRaffle}
+          onClean={resetParticipants}
+          onReset={clearAll}
+          onOpenOverlay={openOverlay}
+          onCloseOverlay={closeOverlay}
+          onConnectOAuthAndChat={connectTwitchOAuthAndChat}
+          onDisconnectChat={disconnectTwitch}
+          proButtonDisabled={twitchConnecting}
+          proButtonLabel={proButtonLabel /* o tu ternario actual */}
+          showStreamHotkeys
+          isPro={licenseInfo.valid}
+          onBuyPro={() => showToast("Compra PRO desde la web.", "info")}
+        />
 
         {/* ✅ Si estás en Stream, puedes ocultar el panel admin si quieres */}
         <div className="grid2">

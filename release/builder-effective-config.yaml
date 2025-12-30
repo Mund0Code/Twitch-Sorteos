@@ -1,7 +1,7 @@
 directories:
   output: release
   buildResources: build
-appId: com.tusorteo.app
+appId: com.mundocode.twitchsorteo
 productName: Twitch Sorteos
 files:
   - filter:

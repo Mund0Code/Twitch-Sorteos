@@ -7,6 +7,7 @@ import RaffleScreen from "./screens/RaffleScreen";
 import OverlayScreen from "./screens/OverlayScreen";
 import { useThemeStore } from "./state/theme.store";
 import Toast from "./components/ui/Toast";
+import { useUpdateUx } from "./hooks/useUpdateUx";
 
 type LicenseStatus = {
   valid: boolean;
@@ -26,6 +27,8 @@ export default function App() {
   if (window.location.hash === "#/overlay") {
     return <OverlayScreen />;
   }
+
+  const { appVersion, openNotes, notesModal } = useUpdateUx();
 
   const [step, setStep] = useState<Step>("TWITCH_USER");
   const [loading, setLoading] = useState(true);
@@ -95,7 +98,8 @@ export default function App() {
   // 3️⃣ App principal
   return (
     <>
-      <RaffleScreen />;
+      <RaffleScreen appVersion={appVersion} openNotes={openNotes} />
+      {notesModal}
       <Toast />
     </>
   );

@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import ThemePicker from "../settings/ThemePicker";
-import { useTwitchStore } from "../../state/twitch.store";
 import TwitchChannelSettings from "../settings/TwitchChannelSettings";
+import { useTwitchStore } from "../../state/twitch.store";
 
 type LicenseInfo = {
   valid: boolean;
@@ -9,17 +9,37 @@ type LicenseInfo = {
   daysLeft: number | null;
 };
 
+type StatusBadge = { cls: string; txt: string };
+
 export function RaffleHeader(props: {
+  // status/licensing
   licenseInfo: LicenseInfo;
   twitchConnected: boolean;
   isStream: boolean;
+  overlayOpen: boolean;
 
+  // stats
   statsTotal: number;
   statsUnique: number;
+  raffleTitleLabel: string;
 
-  raffleTitleLabel: string; // "Sorteo: X" o "Sin sorteo activo"
+  // version / notes
+  appVersion?: string;
+  openNotes?: () => void;
 
+  // rules UI (lo que antes se duplicaba en RaffleScreen)
+  statusLabel: StatusBadge;
+  gateLabel: string;
+  isOpen: boolean;
+  cooldownSec: number;
+  uniqueOnly: boolean;
+  maxEntries: number;
+  slowMode: boolean;
+  slowLeft: number;
+
+  // actions
   onToggleStream: () => void;
+  onToggleOpen: () => void;
 
   onNew: () => void;
   onClean: () => void;
@@ -28,22 +48,22 @@ export function RaffleHeader(props: {
   onOpenOverlay: () => Promise<void>;
   onCloseOverlay: () => void;
 
-  // PRO panel actions
+  // PRO actions
   onConnectOAuthAndChat: () => Promise<void> | void;
   onDisconnectChat: () => void;
   proButtonDisabled: boolean;
   proButtonLabel: string;
 
-  // Stream hotkeys hint (opcional)
+  // optional hint
   showStreamHotkeys?: boolean;
 
+  // pro / upsell
   isPro: boolean;
   onBuyPro: () => void;
 }) {
   const proStatus = useMemo(() => {
-    if (props.licenseInfo.valid) {
+    if (props.licenseInfo.valid)
       return `PRO · ${props.licenseInfo.daysLeft ?? "—"} días`;
-    }
     return "FREE";
   }, [props.licenseInfo.daysLeft, props.licenseInfo.valid]);
 
@@ -84,11 +104,44 @@ export function RaffleHeader(props: {
           </button>
         </div>
 
+        {/* Theme */}
         <div style={{ marginTop: 10 }}>
           <ThemePicker isPro={props.isPro} onBuyPro={props.onBuyPro} />
         </div>
 
-        <div className="subline">
+        {/* Status + reglas */}
+        <div
+          style={{
+            marginTop: 10,
+            display: "flex",
+            gap: 10,
+            alignItems: "center",
+            flexWrap: "wrap",
+          }}
+        >
+          <span className={`statusBadge ${props.statusLabel.cls}`}>
+            {props.statusLabel.txt}
+          </span>
+          {props.slowMode && (
+            <span className="badgeWarn">🐢 Slow {props.slowLeft}s</span>
+          )}
+
+          <span className="ruleChip">
+            🧩 Entradas: <b>{props.gateLabel}</b>
+          </span>
+          <span className="ruleChip">
+            ⏱ Cooldown: <b>{props.cooldownSec}s</b>
+          </span>
+          <span className="ruleChip">
+            ✨ Únicos: <b>{props.uniqueOnly ? "ON" : "OFF"}</b>
+          </span>
+          <span className="ruleChip">
+            🔢 Máx: <b>{props.maxEntries}</b>
+          </span>
+        </div>
+
+        {/* subline */}
+        <div className="subline" style={{ marginTop: 10 }}>
           Participantes: <b>{props.statsTotal}</b> · Únicos:{" "}
           <b>{props.statsUnique}</b>
           <span style={{ marginLeft: 10, opacity: 0.6 }}>
@@ -97,22 +150,56 @@ export function RaffleHeader(props: {
           <span style={{ marginLeft: 10, opacity: 0.75 }}>
             Canal: <b>{twitchUser ? `@${twitchUser}` : "—"}</b>
           </span>
+          {props.showStreamHotkeys && (
+            <span style={{ marginLeft: 10, opacity: 0.6 }}>
+              (F11: {props.isStream ? "Admin" : "Stream"})
+            </span>
+          )}
         </div>
 
-        {props.isStream && props.showStreamHotkeys && (
-          <div className="streamKbdBar">
-            <span className="kbd">F11</span> cambiar modo
-            <span className="kbd">ESC</span> salir de Stream
-          </div>
-        )}
+        {/* Version + notes */}
+        <div
+          style={{
+            display: "flex",
+            gap: 10,
+            alignItems: "center",
+            marginTop: 8,
+          }}
+        >
+          <span style={{ fontSize: 12, opacity: 0.65 }}>
+            v{props.appVersion || "—"}
+          </span>
+          <button
+            className="btnLink"
+            onClick={props.openNotes}
+            disabled={!props.openNotes}
+          >
+            Release notes
+          </button>
+        </div>
+
+        {/* Open/Close raffle */}
+        <button
+          className={props.isOpen ? "btnSecondary" : "btnPrimary"}
+          onClick={props.onToggleOpen}
+          title="Abrir/Cerrar entradas del sorteo"
+          style={{ marginTop: 10 }}
+        >
+          {props.isOpen ? "🔒 Cerrar entradas" : "🟢 Abrir entradas"}
+        </button>
+
+        {/* Twitch channel settings (si lo estás usando) */}
+        <div style={{ marginTop: 10 }}>
+          <TwitchChannelSettings />
+        </div>
       </div>
 
+      {/* Actions right */}
       <div className="topbarActions">
         <div className="btnGroup">
           <button className="btnSecondary" onClick={props.onNew}>
             ➕ Nuevo
           </button>
-
           <button
             className="btnSecondary"
             onClick={props.onClean}
@@ -120,57 +207,59 @@ export function RaffleHeader(props: {
           >
             🧹 Limpiar
           </button>
-
           <button
             className="btnDanger"
             onClick={props.onReset}
-            title="Borra todo"
+            title="Borra todo local"
           >
             🗑️ Reset
           </button>
         </div>
 
         <div className="btnGroup">
-          <button className="btnSecondary" onClick={props.onOpenOverlay}>
-            🧿 Overlay
-          </button>
+          {props.overlayOpen ? (
+            <button className="btnSecondary" onClick={props.onCloseOverlay}>
+              ✖ Cerrar
+            </button>
+          ) : (
+            <button className="btnSecondary" onClick={props.onOpenOverlay}>
+              🧿 Overlay
+            </button>
+          )}
+        </div>
 
-          <button className="btnSecondary" onClick={props.onCloseOverlay}>
-            ✖ Cerrar
-          </button>
+        <details className="proPanel">
+          <summary className="proSummary">
+            <span>🟣 PRO</span>
+            <span className="proHint">
+              {props.twitchConnected
+                ? " Conectado"
+                : props.proButtonDisabled
+                ? " Conectando…"
+                : " Desconectado"}
+            </span>
+          </summary>
 
-          <details className="proPanel">
-            <summary className="proSummary">
-              <span>🟣 PRO</span>
-              <span className="proHint">
-                {props.twitchConnected ? "Conectado" : "Desconectado"}
-              </span>
-            </summary>
-
-            <div className="proActions">
+          <div className="proActions">
+            {!props.twitchConnected ? (
               <button
                 className="btnPrimary"
+                onClick={props.onConnectOAuthAndChat}
                 disabled={props.proButtonDisabled}
-                onClick={props.onConnectOAuthAndChat as any}
               >
                 {props.proButtonLabel}
               </button>
-
-              <button
-                className="btnSecondary"
-                disabled={!props.twitchConnected}
-                onClick={props.onDisconnectChat}
-              >
+            ) : (
+              <button className="btnSecondary" onClick={props.onDisconnectChat}>
                 🔌 Desconectar
               </button>
+            )}
 
-              <div className="proNote">
-                Tip: en Twitch escribe <b>!sorteo</b> para entrar.
-              </div>
+            <div className="proNote">
+              Tip: en Twitch escribe <b>!sorteo</b> para entrar.
             </div>
-            <TwitchChannelSettings />
-          </details>
-        </div>
+          </div>
+        </details>
       </div>
     </div>
   );

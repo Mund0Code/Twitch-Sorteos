@@ -7,17 +7,19 @@ import { registerUpdater } from "./updater";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
-const isDev = !!process.env.VITE_DEV_SERVER_URL;
-
-process.env.APP_ROOT = path.join(__dirname, "..");
-
 export const VITE_DEV_SERVER_URL = process.env["VITE_DEV_SERVER_URL"];
-export const MAIN_DIST = path.join(process.env.APP_ROOT, "dist-electron");
-export const RENDERER_DIST = path.join(process.env.APP_ROOT, "dist");
 
-process.env.VITE_PUBLIC = VITE_DEV_SERVER_URL
-  ? path.join(process.env.APP_ROOT, "public")
-  : RENDERER_DIST;
+function getPaths() {
+  // ✅ En PROD: app.getAppPath() = .../resources/app.asar
+  // ✅ En DEV: __dirname suele ser .../dist-electron
+  const root = app.isPackaged ? app.getAppPath() : path.join(__dirname, "..");
+
+  return {
+    ROOT: root,
+    RENDERER_DIST: path.join(root, "dist"),
+    MAIN_DIST: path.join(root, "dist-electron"),
+  };
+}
 
 let win: BrowserWindow | null = null;
 
@@ -90,6 +92,8 @@ function registerProtocol() {
 }
 
 function createWindow() {
+  const { RENDERER_DIST, MAIN_DIST } = getPaths();
+
   win = new BrowserWindow({
     width: 1100,
     height: 720,
@@ -101,7 +105,9 @@ function createWindow() {
     },
   });
 
-  win.webContents.on("did-finish-load", () => {
+  win.webContents.on("did-finish-load", (_e: any, code: any, desc: any) => {
+    console.error("did-fail-load", code, desc);
+    win?.webContents.openDevTools({ mode: "detach" });
     win?.webContents.send("main-process-message", new Date().toLocaleString());
   });
 
@@ -161,6 +167,8 @@ ipcMain.handle("oauth:twitchStart", async (_evt, url: string) => {
 ipcMain.handle("oauth:getLast", async () => {
   return lastOAuthUrl; // variable que ya tienes en main.ts
 });
+
+app.setPath("userData", path.join(app.getPath("appData"), "twitch-sorteos"));
 
 app.whenReady().then(() => {
   registerProtocol();

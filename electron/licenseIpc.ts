@@ -4,12 +4,12 @@ import { machineId } from "node-machine-id";
 
 const API_URL = "http://127.0.0.1:3001";
 
-const getDeviceId = async () => {
-  const id = await machineId(true);
-  return String(id);
-};
-
 export function registerLicenseIpc() {
+  const getDeviceId = async () => {
+    const id = await machineId(true);
+    return String(id);
+  };
+
   // 🔍 Verificar licencia (al arrancar)
   ipcMain.handle("license:status", async () => {
     const data = licenseStore.get();
@@ -115,6 +115,10 @@ export function registerLicenseIpc() {
     } catch (err) {
       return { ok: false, error: "No se pudo conectar con el servidor" };
     }
+  });
+
+  ipcMain.handle("device:getId", async () => {
+    return licenseStore.getDeviceId(); // o licenseStore.deviceId, según tu store
   });
 
   // 🧹 Cerrar sesión licencia

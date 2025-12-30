@@ -50,3 +50,10 @@ body {
   border: 1px solid var(--border-soft);
   box-shadow: 0 30px 80px rgba(0, 0, 0, 0.45);
 }
+
+.appVersion {
+  font-size: 11px;
+  opacity: 0.45;
+  margin-left: 8px;
+  user-select: none;
+}

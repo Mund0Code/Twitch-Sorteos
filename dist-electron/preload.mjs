@@ -1,5 +1,8 @@
 "use strict";
 const electron = require("electron");
+electron.contextBridge.exposeInMainWorld("appApi", {
+  version: () => process.env.npm_package_version
+});
 electron.contextBridge.exposeInMainWorld("licenseApi", {
   status: () => electron.ipcRenderer.invoke("license:status"),
   activate: (key) => electron.ipcRenderer.invoke("license:activate", key),
@@ -35,4 +38,7 @@ electron.contextBridge.exposeInMainWorld("updateApi", {
     electron.ipcRenderer.on("update:status", h);
     return () => electron.ipcRenderer.removeListener("update:status", h);
   }
+});
+electron.contextBridge.exposeInMainWorld("deviceApi", {
+  getId: () => electron.ipcRenderer.invoke("device:getId")
 });

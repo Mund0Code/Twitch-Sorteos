@@ -1,5 +1,9 @@
 import { contextBridge, ipcRenderer } from "electron";
 
+contextBridge.exposeInMainWorld("appApi", {
+  version: () => process.env.npm_package_version,
+});
+
 contextBridge.exposeInMainWorld("licenseApi", {
   status: () => ipcRenderer.invoke("license:status"),
   activate: (key: string) => ipcRenderer.invoke("license:activate", key),
@@ -36,9 +40,13 @@ contextBridge.exposeInMainWorld("oauthApi", {
 contextBridge.exposeInMainWorld("updateApi", {
   check: () => ipcRenderer.invoke("update:check"),
   install: () => ipcRenderer.invoke("update:install"),
-  onStatus: (cb: (s: any) => void) => {
+  onStatus: (cb: (arg0: any) => any) => {
     const h = (_e: any, s: any) => cb(s);
     ipcRenderer.on("update:status", h);
     return () => ipcRenderer.removeListener("update:status", h);
   },
+});
+
+contextBridge.exposeInMainWorld("deviceApi", {
+  getId: () => ipcRenderer.invoke("device:getId"),
 });
