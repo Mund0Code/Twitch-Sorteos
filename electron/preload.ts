@@ -10,6 +10,7 @@ contextBridge.exposeInMainWorld("licenseApi", {
   clear: () => ipcRenderer.invoke("license:clear"),
   startTrial: (twitchUser?: string) =>
     ipcRenderer.invoke("license:trialStart", twitchUser),
+  deviceId: () => ipcRenderer.invoke("license:deviceId"),
 });
 
 contextBridge.exposeInMainWorld("overlayApi", {
@@ -40,10 +41,10 @@ contextBridge.exposeInMainWorld("oauthApi", {
 contextBridge.exposeInMainWorld("updateApi", {
   check: () => ipcRenderer.invoke("update:check"),
   install: () => ipcRenderer.invoke("update:install"),
-  onStatus: (cb: (arg0: any) => any) => {
-    const h = (_e: any, s: any) => cb(s);
-    ipcRenderer.on("update:status", h);
-    return () => ipcRenderer.removeListener("update:status", h);
+  onStatus: (cb: (s: any) => void) => {
+    const handler = (_e: any, s: any) => cb(s);
+    ipcRenderer.on("update:status", handler);
+    return () => ipcRenderer.removeListener("update:status", handler);
   },
 });
 

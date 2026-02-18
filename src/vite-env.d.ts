@@ -17,14 +17,16 @@ declare global {
         valid: boolean;
         expiresAt: string | null;
         capabilities?: any;
+        key?: string | null;
       }>;
       activate: (key: string) => Promise<any>;
       clear: () => Promise<boolean>;
       startTrial: (twitchUser?: string) => Promise<any>;
+      deviceId: () => Promise<string>;
     };
 
     deviceApi?: {
-      getId: () => Promise<string>;
+      getId: () => Promise<{ deviceId: string }>;
     };
 
     overlayApi: {

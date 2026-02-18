@@ -39,6 +39,7 @@ export function registerLicenseIpc() {
       return {
         valid: true,
         expiresAt: json.expiresAt ?? null,
+        key: data.key ?? null,
         capabilities: json.capabilities ?? {},
       };
     } catch (err) {
@@ -117,13 +118,19 @@ export function registerLicenseIpc() {
     }
   });
 
-  ipcMain.handle("device:getId", async () => {
-    return licenseStore.getDeviceId(); // o licenseStore.deviceId, según tu store
-  });
-
   // 🧹 Cerrar sesión licencia
   ipcMain.handle("license:clear", () => {
     licenseStore.clear();
     return true;
+  });
+
+  ipcMain.handle("device:getId", async () => {
+    try {
+      const id = await machineId();
+      return { deviceId: id };
+    } catch (e) {
+      console.error("device:getId failed", e);
+      return { deviceId: null };
+    }
   });
 }

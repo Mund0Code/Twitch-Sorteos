@@ -74,7 +74,11 @@ export class TwitchChatService {
     const identityUsername = cleanChannel;
 
     this.client = new (tmi as any).Client({
-      options: { debug: false, messagesLogLevel: "info" },
+      options: {
+        debug: false,
+        messagesLogLevel: "info",
+        skipUpdatingEmotesets: true,
+      },
       connection: { secure: true, reconnect: true },
       identity: {
         username: identityUsername,
@@ -85,10 +89,10 @@ export class TwitchChatService {
 
     this.client.on("connected", () => cb?.onStatus?.("✅ Chat conectado"));
     this.client.on("reconnect", () =>
-      cb?.onStatus?.("🔄 Reintentando conexión…")
+      cb?.onStatus?.("🔄 Reintentando conexión…"),
     );
     this.client.on("disconnected", () =>
-      cb?.onStatus?.("⚠️ Chat desconectado")
+      cb?.onStatus?.("⚠️ Chat desconectado"),
     );
 
     this.client.on("notice", (_channel: any, msgid: any, message: any) => {
@@ -160,7 +164,7 @@ export class TwitchChatService {
             tags,
           });
         }
-      }
+      },
     );
 
     try {

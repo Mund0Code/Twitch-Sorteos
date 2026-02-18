@@ -7,7 +7,8 @@ electron.contextBridge.exposeInMainWorld("licenseApi", {
   status: () => electron.ipcRenderer.invoke("license:status"),
   activate: (key) => electron.ipcRenderer.invoke("license:activate", key),
   clear: () => electron.ipcRenderer.invoke("license:clear"),
-  startTrial: (twitchUser) => electron.ipcRenderer.invoke("license:trialStart", twitchUser)
+  startTrial: (twitchUser) => electron.ipcRenderer.invoke("license:trialStart", twitchUser),
+  deviceId: () => electron.ipcRenderer.invoke("license:deviceId")
 });
 electron.contextBridge.exposeInMainWorld("overlayApi", {
   open: () => electron.ipcRenderer.invoke("overlay:open"),
@@ -34,9 +35,9 @@ electron.contextBridge.exposeInMainWorld("updateApi", {
   check: () => electron.ipcRenderer.invoke("update:check"),
   install: () => electron.ipcRenderer.invoke("update:install"),
   onStatus: (cb) => {
-    const h = (_e, s) => cb(s);
-    electron.ipcRenderer.on("update:status", h);
-    return () => electron.ipcRenderer.removeListener("update:status", h);
+    const handler = (_e, s) => cb(s);
+    electron.ipcRenderer.on("update:status", handler);
+    return () => electron.ipcRenderer.removeListener("update:status", handler);
   }
 });
 electron.contextBridge.exposeInMainWorld("deviceApi", {

@@ -16333,6 +16333,7 @@ function registerLicenseIpc() {
       return {
         valid: true,
         expiresAt: json2.expiresAt ?? null,
+        key: data.key ?? null,
         capabilities: json2.capabilities ?? {}
       };
     } catch (err) {
@@ -16395,12 +16396,18 @@ function registerLicenseIpc() {
       return { ok: false, error: "No se pudo conectar con el servidor" };
     }
   });
-  ipcMain$1.handle("device:getId", async () => {
-    return licenseStore.getDeviceId();
-  });
   ipcMain$1.handle("license:clear", () => {
     licenseStore.clear();
     return true;
+  });
+  ipcMain$1.handle("device:getId", async () => {
+    try {
+      const id2 = await distExports.machineId();
+      return { deviceId: id2 };
+    } catch (e) {
+      console.error("device:getId failed", e);
+      return { deviceId: null };
+    }
   });
 }
 let overlayWin = null;
@@ -28642,11 +28649,18 @@ NsisUpdater$1.NsisUpdater = NsisUpdater;
     }
   });
 })(main$1);
+let registered = false;
 function registerUpdater(win2) {
+  if (registered) {
+    sendTo(win2, { state: "boot", version: app$1.getVersion() });
+    return;
+  }
+  registered = true;
+  const canUpdate = app$1.isPackaged;
   main$1.autoUpdater.autoDownload = true;
   main$1.autoUpdater.autoInstallOnAppQuit = true;
   function send(status) {
-    win2.webContents.send("update:status", status);
+    sendTo(win2, status);
   }
   send({ state: "boot", version: app$1.getVersion() });
   main$1.autoUpdater.on("checking-for-update", () => send({ state: "checking" }));
@@ -28655,34 +28669,75 @@ function registerUpdater(win2) {
     (info) => send({
       state: "available",
       version: info == null ? void 0 : info.version,
-      releaseNotes: (info == null ? void 0 : info.releaseNotes) ?? null,
+      releaseNotes: normalizeReleaseNotes(info == null ? void 0 : info.releaseNotes),
       info
     })
   );
   main$1.autoUpdater.on("update-not-available", () => send({ state: "none" }));
   main$1.autoUpdater.on(
     "download-progress",
-    (p) => send({ state: "downloading", percent: p == null ? void 0 : p.percent })
+    (p) => send({ state: "downloading", percent: Number((p == null ? void 0 : p.percent) ?? 0) })
   );
   main$1.autoUpdater.on(
     "update-downloaded",
     (info) => send({
       state: "downloaded",
       version: info == null ? void 0 : info.version,
-      releaseNotes: (info == null ? void 0 : info.releaseNotes) ?? null,
+      releaseNotes: normalizeReleaseNotes(info == null ? void 0 : info.releaseNotes),
       info
     })
   );
-  main$1.autoUpdater.on("error", (e) => send({ state: "error", message: String(e) }));
+  main$1.autoUpdater.on(
+    "error",
+    (e) => send({ state: "error", message: String((e == null ? void 0 : e.message) ?? e) })
+  );
   ipcMain$1.handle("update:check", async () => {
-    main$1.autoUpdater.checkForUpdates();
+    await main$1.autoUpdater.checkForUpdates();
     return true;
   });
   ipcMain$1.handle("update:install", async () => {
+    if (!canUpdate) return true;
     main$1.autoUpdater.quitAndInstall();
     return true;
   });
 }
+function sendTo(win2, status) {
+  try {
+    if (!win2 || win2.isDestroyed()) return;
+    win2.webContents.send("update:status", status);
+  } catch {
+  }
+}
+function normalizeReleaseNotes(rn) {
+  if (!rn) return null;
+  if (typeof rn === "string") return rn;
+  if (Array.isArray(rn)) {
+    return rn.map((x) => {
+      if (!x) return "";
+      if (typeof x === "string") return x;
+      const v = x.version ? `v${x.version}
+` : "";
+      const n = x.note ?? x.notes ?? "";
+      return `${v}${String(n)}`;
+    }).filter(Boolean).join("\n\n---\n\n");
+  }
+  try {
+    return JSON.stringify(rn, null, 2);
+  } catch {
+    return String(rn);
+  }
+}
+const cacheRoot = path$m.join(os$1.tmpdir(), "twitch-sorteos-cache");
+try {
+  fs$j.mkdirSync(cacheRoot, { recursive: true });
+  fs$j.mkdirSync(path$m.join(cacheRoot, "gpu"), { recursive: true });
+} catch {
+}
+app$1.commandLine.appendSwitch("disk-cache-dir", cacheRoot);
+app$1.commandLine.appendSwitch("gpu-cache-dir", path$m.join(cacheRoot, "gpu"));
+app$1.commandLine.appendSwitch("disable-gpu-shader-disk-cache");
+app$1.setPath("userData", path$m.join(app$1.getPath("appData"), "twitch-sorteos"));
+app$1.setPath("cache", path$m.join(app$1.getPath("userData"), "Cache"));
 const __dirname$1 = path$m.dirname(fileURLToPath(import.meta.url));
 const VITE_DEV_SERVER_URL = process.env["VITE_DEV_SERVER_URL"];
 function getPaths() {
@@ -28754,11 +28809,14 @@ function createWindow() {
       // ⚠️ IMPORTANTE: electron-vite suele generar preload.mjs
       preload: path$m.join(MAIN_DIST, "preload.mjs"),
       contextIsolation: true,
-      nodeIntegration: false
+      nodeIntegration: false,
+      partition: "persist:twitch-oauth"
     }
   });
-  win.webContents.on("did-finish-load", (_e, code2, desc) => {
+  win.webContents.on("did-fail-load", (_e, code2, desc) => {
     console.error("did-fail-load", code2, desc);
+  });
+  win.webContents.on("did-finish-load", () => {
     win == null ? void 0 : win.webContents.openDevTools({ mode: "detach" });
     win == null ? void 0 : win.webContents.send("main-process-message", (/* @__PURE__ */ new Date()).toLocaleString());
   });
@@ -28794,15 +28852,26 @@ ipcMain$1.handle("oauth:twitchStart", async (_evt, url) => {
     modal: false,
     show: true,
     webPreferences: {
+      preload: path$m.join(__dirname$1, "preload.mjs"),
       contextIsolation: true,
-      nodeIntegration: false
+      nodeIntegration: false,
+      partition: "persist:twitch-oauth"
     }
   });
   oauthWin.on("closed", () => {
     oauthWin = null;
   });
-  await oauthWin.loadURL(url);
-  return true;
+  try {
+    await oauthWin.loadURL(url);
+    return true;
+  } catch (e) {
+    console.error("oauth:twitchStart loadURL failed:", e);
+    win == null ? void 0 : win.webContents.send("oauth:error", {
+      message: String((e == null ? void 0 : e.message) ?? e),
+      url
+    });
+    throw e;
+  }
 });
 ipcMain$1.handle("oauth:getLast", async () => {
   return lastOAuthUrl;

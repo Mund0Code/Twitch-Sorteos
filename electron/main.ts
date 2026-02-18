@@ -4,6 +4,23 @@ import path from "node:path";
 import { registerLicenseIpc } from "./licenseIpc";
 import { registerOverlayIpc } from "./overlayIpc";
 import { registerUpdater } from "./updater";
+import os from "node:os";
+import fs from "node:fs";
+
+// ---- FIX cache Windows (0x5) ----
+const cacheRoot = path.join(os.tmpdir(), "twitch-sorteos-cache");
+try {
+  fs.mkdirSync(cacheRoot, { recursive: true });
+  fs.mkdirSync(path.join(cacheRoot, "gpu"), { recursive: true });
+} catch {}
+
+app.commandLine.appendSwitch("disk-cache-dir", cacheRoot);
+app.commandLine.appendSwitch("gpu-cache-dir", path.join(cacheRoot, "gpu"));
+app.commandLine.appendSwitch("disable-gpu-shader-disk-cache");
+
+// userData una vez
+app.setPath("userData", path.join(app.getPath("appData"), "twitch-sorteos"));
+app.setPath("cache", path.join(app.getPath("userData"), "Cache"));
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -102,11 +119,15 @@ function createWindow() {
       preload: path.join(MAIN_DIST, "preload.mjs"),
       contextIsolation: true,
       nodeIntegration: false,
+      partition: "persist:twitch-oauth",
     },
   });
 
-  win.webContents.on("did-finish-load", (_e: any, code: any, desc: any) => {
+  win.webContents.on("did-fail-load", (_e, code, desc) => {
     console.error("did-fail-load", code, desc);
+  });
+
+  win.webContents.on("did-finish-load", () => {
     win?.webContents.openDevTools({ mode: "detach" });
     win?.webContents.send("main-process-message", new Date().toLocaleString());
   });
@@ -151,8 +172,10 @@ ipcMain.handle("oauth:twitchStart", async (_evt, url: string) => {
     modal: false,
     show: true,
     webPreferences: {
+      preload: path.join(__dirname, "preload.mjs"),
       contextIsolation: true,
       nodeIntegration: false,
+      partition: "persist:twitch-oauth",
     },
   });
 
@@ -160,15 +183,23 @@ ipcMain.handle("oauth:twitchStart", async (_evt, url: string) => {
     oauthWin = null;
   });
 
-  await oauthWin.loadURL(url);
-  return true;
+  try {
+    await oauthWin.loadURL(url);
+    return true;
+  } catch (e) {
+    console.error("oauth:twitchStart loadURL failed:", e);
+    // manda algo al renderer para que lo veas como toast si quieres
+    win?.webContents.send("oauth:error", {
+      message: String((e as any)?.message ?? e),
+      url,
+    });
+    throw e;
+  }
 });
 
 ipcMain.handle("oauth:getLast", async () => {
   return lastOAuthUrl; // variable que ya tienes en main.ts
 });
-
-app.setPath("userData", path.join(app.getPath("appData"), "twitch-sorteos"));
 
 app.whenReady().then(() => {
   registerProtocol();

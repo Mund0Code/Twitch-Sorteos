@@ -20,7 +20,7 @@ export default function OverlayScreen() {
   const [state, setState] = useState<OverlayState>({});
 
   useEffect(() => {
-    return window.overlayApi.onUpdate((s) => setState(s ?? {}));
+    return window.overlayApi.onUpdate((s: Partial<OverlayState>) => setState(s ?? {}));
   }, []);
 
   const title = state.title || "Twitch Sorteos";

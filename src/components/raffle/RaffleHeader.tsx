@@ -166,16 +166,17 @@ export function RaffleHeader(props: {
             marginTop: 8,
           }}
         >
-          <span style={{ fontSize: 12, opacity: 0.65 }}>
-            v{props.appVersion || "—"}
-          </span>
           <button
-            className="btnLink"
-            onClick={props.openNotes}
+            className="btnSecondary"
+            onClick={() => props.openNotes?.()}
             disabled={!props.openNotes}
           >
-            Release notes
+            📝 Release notes
           </button>
+
+          <div style={{ fontSize: 12, opacity: 0.7, marginLeft: 10 }}>
+            v{props.appVersion || "—"}
+          </div>
         </div>
 
         {/* Open/Close raffle */}
@@ -235,8 +236,8 @@ export function RaffleHeader(props: {
               {props.twitchConnected
                 ? " Conectado"
                 : props.proButtonDisabled
-                ? " Conectando…"
-                : " Desconectado"}
+                  ? " Conectando…"
+                  : " Desconectado"}
             </span>
           </summary>
 

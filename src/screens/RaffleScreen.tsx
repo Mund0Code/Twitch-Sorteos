@@ -32,6 +32,18 @@ import {
 
 import { RaffleHeader } from "../components/raffle/RaffleHeader";
 
+declare global {
+  interface Window {
+    appApi: {
+      version: () => string;
+    };
+    overlayApi?: any;
+    licenseApi?: any;
+    oauthApi?: any;
+    deviceApi?: any;
+  }
+}
+
 type Raffle = {
   id: string;
   title: string;
@@ -204,8 +216,8 @@ export default function RaffleScreen({
     rules.gate === "everyone"
       ? "Everyone"
       : rules.gate === "subs"
-      ? "Subs"
-      : "Mods/VIPs";
+        ? "Subs"
+        : "Mods/VIPs";
 
   // cooldown por usuario (no persistente; se reinicia al cerrar app)
   const lastJoinRef = useRef<Map<string, number>>(new Map());
@@ -329,8 +341,8 @@ export default function RaffleScreen({
       status: picking
         ? "picking"
         : raffle && participants.length >= 2
-        ? "ready"
-        : "idle",
+          ? "ready"
+          : "idle",
 
       // FASE 3 (rules)
       statusMode: picking ? "picking" : rules.isOpen ? "open" : "closed",
@@ -418,7 +430,7 @@ export default function RaffleScreen({
         }
 
         const res = await fetch(
-          `http://localhost:3001/oauth/session/${session}`
+          `http://localhost:3001/oauth/session/${session}`,
         );
         const json = await res.json();
 
@@ -584,7 +596,7 @@ export default function RaffleScreen({
         onJoin: (payload: any) => {
           // payload viene con roles ✅ (según me dijiste)
           const username = String(
-            payload?.username ?? payload?.user ?? payload ?? ""
+            payload?.username ?? payload?.user ?? payload ?? "",
           ).trim();
           if (!username) return;
           if (picking) return;
@@ -606,7 +618,7 @@ export default function RaffleScreen({
               isVip: !!payload?.isVip,
             },
             currentCount,
-            alreadyIn
+            alreadyIn,
           );
 
           if (!result.ok) {
@@ -626,7 +638,7 @@ export default function RaffleScreen({
 
             // re-check (anti race)
             const exists = prev.participants.some(
-              (p) => p.toLowerCase() === uname
+              (p) => p.toLowerCase() === uname,
             );
             if (rules.uniqueOnly && exists) return prev;
 
@@ -641,8 +653,8 @@ export default function RaffleScreen({
             rules.gate === "everyone"
               ? "everyone"
               : rules.gate === "subs"
-              ? "subs"
-              : "mods/vips";
+                ? "subs"
+                : "mods/vips";
 
           pushFeed({
             kind: "success",
@@ -681,7 +693,7 @@ export default function RaffleScreen({
           if (evt.type === "reset") {
             // vacía participantes
             setRaffle((prev) =>
-              prev ? { ...prev, participants: [], winner: undefined } : prev
+              prev ? { ...prev, participants: [], winner: undefined } : prev,
             );
             pushFeed({
               kind: "info",
@@ -744,7 +756,7 @@ export default function RaffleScreen({
               return {
                 ...prev,
                 participants: prev.participants.filter(
-                  (p) => p.toLowerCase() !== uname
+                  (p) => p.toLowerCase() !== uname,
                 ),
               };
             });
@@ -847,7 +859,7 @@ export default function RaffleScreen({
             if (picking) return prev;
 
             const exists = prev.participants.some(
-              (p) => p.toLowerCase() === key
+              (p) => p.toLowerCase() === key,
             );
             if (exists && rules.uniqueOnly) return prev;
 
@@ -901,16 +913,27 @@ export default function RaffleScreen({
 
     try {
       showToast("Abriendo Twitch OAuth…", "info", 1600);
-      const base = import.meta.env.VITE_API_URL ?? "http://127.0.0.1:3001";
-      const deviceId = await window.deviceApi?.getId();
 
-      if (!deviceId) {
-        throw new Error("Missing deviceId (deviceApi.getId)");
+      const { deviceId } = await window.deviceApi!.getId();
+      if (!deviceId) throw new Error("Missing deviceId");
+
+      const st = await window.licenseApi.status();
+      const key = st.key; // ✅ necesita existir en tu status()
+
+      if (!key) {
+        showToast(
+          "No se encontró la licencia activa. Activa PRO primero.",
+          "error",
+        );
+        pendingChannelRef.current = null;
+        setTwitchConnecting(false);
+        return;
       }
 
-      const startUrl = `${base}/auth/twitch/start?deviceId=${encodeURIComponent(
-        deviceId
-      )}`;
+      const startUrl = `http://127.0.0.1:3001/auth/twitch/start?deviceId=${encodeURIComponent(
+        deviceId,
+      )}&key=${encodeURIComponent(key ?? "")}`;
+
       await window.oauthApi?.twitchStart?.(startUrl);
     } catch (e) {
       console.error(e);
