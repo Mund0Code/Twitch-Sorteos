@@ -113,7 +113,7 @@ function createWindow() {
     height: 720,
     webPreferences: {
       // ⚠️ IMPORTANTE: electron-vite suele generar preload.mjs
-      preload: path.join(MAIN_DIST, "preload.mjs"),
+      preload: path.join(__dirname, "preload.mjs"),
       contextIsolation: true,
       nodeIntegration: false,
       partition: "persist:twitch-oauth",
@@ -129,10 +129,13 @@ function createWindow() {
     win?.webContents.send("main-process-message", new Date().toLocaleString());
   });
 
-  if (VITE_DEV_SERVER_URL) {
-    win.loadURL(VITE_DEV_SERVER_URL);
+  // ✅ DEV: solo cuando NO está empaquetado
+  if (!app.isPackaged && process.env.VITE_DEV_SERVER_URL) {
+    win.loadURL(process.env.VITE_DEV_SERVER_URL);
   } else {
-    win.loadFile(path.join(RENDERER_DIST, "index.html"));
+    // ✅ PROD: SIEMPRE loadFile desde dist/index.html dentro del asar
+    const indexHtml = path.join(app.getAppPath(), "dist", "index.html");
+    win.loadFile(indexHtml);
   }
 
   // ✅ si la app se abrió por deep link en el primer arranque
