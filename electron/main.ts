@@ -27,12 +27,9 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 export const VITE_DEV_SERVER_URL = process.env["VITE_DEV_SERVER_URL"];
 
 function getPaths() {
-  // ✅ En PROD: app.getAppPath() = .../resources/app.asar
-  // ✅ En DEV: __dirname suele ser .../dist-electron
+  // PROD: app.getAppPath() suele ser .../resources/app.asar
   const root = app.isPackaged ? app.getAppPath() : path.join(__dirname, "..");
-
   return {
-    ROOT: root,
     RENDERER_DIST: path.join(root, "dist"),
     MAIN_DIST: path.join(root, "dist-electron"),
   };
