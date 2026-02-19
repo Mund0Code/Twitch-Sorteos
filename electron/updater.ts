@@ -4,6 +4,8 @@ import { autoUpdater } from "electron-updater";
 let registered = false;
 
 export function registerUpdater(win: BrowserWindow) {
+  if (!app.isPackaged) return;
+
   // ✅ Evita registrar 2 veces (si recreas ventana, hot reload, etc.)
   if (registered) {
     // Re-engancha el "send" a la nueva window (por si cambió win)
@@ -57,8 +59,16 @@ export function registerUpdater(win: BrowserWindow) {
 
   // ✅ Handlers IPC SOLO una vez
   ipcMain.handle("update:check", async () => {
-    await autoUpdater.checkForUpdates();
-    return true;
+    try {
+      await autoUpdater.checkForUpdates();
+      return true;
+    } catch (e: any) {
+      win.webContents.send("update:status", {
+        state: "error",
+        message: "No hay releases públicas todavía.",
+      });
+      return false;
+    }
   });
 
   ipcMain.handle("update:install", async () => {

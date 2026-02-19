@@ -12,6 +12,10 @@ type OverlayState = {
 
 declare global {
   interface Window {
+    appApi?: {
+      version: () => Promise<string>;
+    };
+
     licenseApi: {
       status: () => Promise<{
         valid: boolean;

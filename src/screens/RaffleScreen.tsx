@@ -32,18 +32,6 @@ import {
 
 import { RaffleHeader } from "../components/raffle/RaffleHeader";
 
-declare global {
-  interface Window {
-    appApi: {
-      version: () => string;
-    };
-    overlayApi?: any;
-    licenseApi?: any;
-    oauthApi?: any;
-    deviceApi?: any;
-  }
-}
-
 type Raffle = {
   id: string;
   title: string;
@@ -240,7 +228,14 @@ export default function RaffleScreen({
   const [version, setVersion] = useState("");
 
   useEffect(() => {
-    setVersion(window.appApi?.version?.() ?? "");
+    (async () => {
+      try {
+        const v = await window.appApi?.version?.();
+        setVersion(v ?? "");
+      } catch {
+        setVersion("");
+      }
+    })();
   }, []);
 
   useEffect(() => {

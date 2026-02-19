@@ -50,23 +50,13 @@ export function useUpdateUx() {
       if (state === "available") {
         toast.info("🔄 Actualización disponible (descargando…)", 2600);
 
-        // A veces releaseNotes ya vienen aquí
         const v = String(s?.version ?? "");
-        const rnStr = normalizeNotes(s?.releaseNotes);
+        const rn = s?.releaseNotes ?? null;
 
-        if (rnStr) {
-          const sig = `${v}::${rnStr.slice(0, 160)}`;
-          const lastSig = localStorage.getItem(LS_LAST_NOTES_SIG) ?? "";
-
-          if (sig !== lastSig) {
-            localStorage.setItem(LS_LAST_NOTES_SIG, sig);
-            localStorage.setItem(LS_LAST_NOTES_BODY, rnStr);
-            localStorage.setItem(LS_LAST_NOTES_VER, v);
-
-            setNotesVersion(v || "Nueva versión");
-            setNotesBody(rnStr);
-            // no abrimos modal aún (opcional)
-          }
+        // ✅ guarda notas también cuando está disponible
+        if (rn) {
+          setNotesVersion(v || "Nueva versión");
+          setNotesBody(rn);
         }
       }
 
@@ -119,21 +109,25 @@ export function useUpdateUx() {
     appVersion,
     notesModal,
     openNotes: async () => {
-      // ✅ si ya hay notas guardadas, abre directo
+      // si ya hay notas cargadas, abre
       if (notesBody) {
         setNotesOpen(true);
         return;
       }
 
-      // ✅ si no hay, dispara un check y avisa
-      if (!window.updateApi?.check) {
-        toast.info("Updates no disponible en DEV.", 2400);
-        return;
-      }
+      // si no hay notas, intenta buscarlas (check)
+      toast.info("Buscando updates…", 1800);
+      await window.updateApi?.check?.();
 
-      toast.info("Buscando notas…", 1800);
-      await window.updateApi.check();
-      // cuando llegue available/downloaded, se guardan y ya podrás abrir
+      // si aun no hay notas (porque no hay update o no descargó), muestra aviso
+      setTimeout(() => {
+        if (!notesBody) {
+          toast.info(
+            "Aún no hay notas. Si hay update, saldrán al descargar.",
+            2600,
+          );
+        }
+      }, 1200);
     },
   };
 }

@@ -1,7 +1,7 @@
 import { contextBridge, ipcRenderer } from "electron";
 
 contextBridge.exposeInMainWorld("appApi", {
-  version: () => process.env.npm_package_version,
+  version: () => ipcRenderer.invoke("app:getVersion"),
 });
 
 contextBridge.exposeInMainWorld("licenseApi", {

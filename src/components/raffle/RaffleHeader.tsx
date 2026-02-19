@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import ThemePicker from "../settings/ThemePicker";
 import TwitchChannelSettings from "../settings/TwitchChannelSettings";
 import { useTwitchStore } from "../../state/twitch.store";
@@ -68,6 +68,22 @@ export function RaffleHeader(props: {
   }, [props.licenseInfo.daysLeft, props.licenseInfo.valid]);
 
   const twitchUser = useTwitchStore((s) => s.username);
+
+  const [localVersion, setLocalVersion] = useState("");
+
+  // Si no llega appVersion por props (por ejemplo en dev), la pedimos a preload (appApi)
+  useEffect(() => {
+    if (props.appVersion) return; // ya tenemos versión
+    const v = window.appApi?.version?.();
+    if (!v) return;
+
+    // appApi.version puede ser string o Promise<string> (según como esté tipado)
+    Promise.resolve(v as any)
+      .then((ver) => setLocalVersion(String(ver ?? "")))
+      .catch(() => {});
+  }, [props.appVersion]);
+
+  const shownVersion = props.appVersion || localVersion || "—";
 
   return (
     <div className="topbar" style={{ gap: 14 }}>
@@ -175,7 +191,7 @@ export function RaffleHeader(props: {
           </button>
 
           <div style={{ fontSize: 12, opacity: 0.7, marginLeft: 10 }}>
-            v{props.appVersion || "—"}
+            v{shownVersion}
           </div>
         </div>
 

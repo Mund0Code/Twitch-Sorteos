@@ -154,6 +154,10 @@ app.on("activate", () => {
 // Mantén una referencia para poder cerrarla luego
 let oauthWin: BrowserWindow | null = null;
 
+ipcMain.handle("app:getVersion", () => {
+  return app.getVersion();
+});
+
 ipcMain.handle("oauth:twitchStart", async (_evt, url: string) => {
   // Si ya hay una abierta, enfócala
   if (oauthWin && !oauthWin.isDestroyed()) {
