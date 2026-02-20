@@ -2,29 +2,34 @@ import { BrowserWindow, ipcMain, app } from "electron";
 import { autoUpdater } from "electron-updater";
 
 let registered = false;
+let currentWin: BrowserWindow | null = null;
 
 export function registerUpdater(win: BrowserWindow) {
-  if (!app.isPackaged) return;
+  // ✅ En DEV no hay feed real (GitHub releases), evita errores y spam
+  if (!app.isPackaged) {
+    // aun así manda versión al renderer para que NO salga v—
+    safeSend(win, { state: "boot", version: app.getVersion() });
+    return;
+  }
 
-  // ✅ Evita registrar 2 veces (si recreas ventana, hot reload, etc.)
+  // ✅ siempre apunta al win actual
+  currentWin = win;
+
+  // ✅ Evita registrar 2 veces listeners/handlers
   if (registered) {
-    // Re-engancha el "send" a la nueva window (por si cambió win)
-    sendTo(win, { state: "boot", version: app.getVersion() });
+    safeSend(currentWin, { state: "boot", version: app.getVersion() });
     return;
   }
   registered = true;
-
-  // ✅ En DEV no intentes hacer check real (no hay feed)
-  const canUpdate = app.isPackaged;
 
   autoUpdater.autoDownload = true;
   autoUpdater.autoInstallOnAppQuit = true;
 
   function send(status: any) {
-    sendTo(win, status);
+    safeSend(currentWin, status);
   }
 
-  // ✅ versión actual siempre
+  // ✅ versión actual siempre (para mostrar v1.x.x)
   send({ state: "boot", version: app.getVersion() });
 
   autoUpdater.on("checking-for-update", () => send({ state: "checking" }));
@@ -53,32 +58,29 @@ export function registerUpdater(win: BrowserWindow) {
     }),
   );
 
-  autoUpdater.on("error", (e) =>
+  autoUpdater.on("error", (e: any) =>
     send({ state: "error", message: String(e?.message ?? e) }),
   );
 
-  // ✅ Handlers IPC SOLO una vez
+  // ✅ IPC handlers (SOLO una vez)
   ipcMain.handle("update:check", async () => {
     try {
+      // await para poder capturar errores reales y reportarlos
       await autoUpdater.checkForUpdates();
       return true;
     } catch (e: any) {
-      win.webContents.send("update:status", {
-        state: "error",
-        message: "No hay releases públicas todavía.",
-      });
+      send({ state: "error", message: String(e?.message ?? e) });
       return false;
     }
   });
 
   ipcMain.handle("update:install", async () => {
-    if (!canUpdate) return true;
     autoUpdater.quitAndInstall();
     return true;
   });
 }
 
-function sendTo(win: BrowserWindow, status: any) {
+function safeSend(win: BrowserWindow | null, status: any) {
   try {
     if (!win || win.isDestroyed()) return;
     win.webContents.send("update:status", status);
@@ -87,12 +89,11 @@ function sendTo(win: BrowserWindow, status: any) {
   }
 }
 
-// Stripe/GitHub a veces manda releaseNotes como string, array, o objeto
+// GitHub/electron-updater a veces manda releaseNotes como string, array o algo raro
 function normalizeReleaseNotes(rn: any) {
   if (!rn) return null;
   if (typeof rn === "string") return rn;
 
-  // electron-updater puede mandar array: [{ version, note }, ...]
   if (Array.isArray(rn)) {
     return rn
       .map((x) => {
@@ -106,7 +107,6 @@ function normalizeReleaseNotes(rn: any) {
       .join("\n\n---\n\n");
   }
 
-  // objeto
   try {
     return JSON.stringify(rn, null, 2);
   } catch {

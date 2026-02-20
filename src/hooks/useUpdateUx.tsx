@@ -8,8 +8,9 @@ const LS_LAST_NOTES_VER = "ts_last_release_notes_ver_v1";
 
 function normalizeNotes(rn: any): string {
   if (!rn) return "";
-  // electron-updater a veces manda string, a veces array/obj
   if (typeof rn === "string") return rn;
+  // electron-updater a veces manda array (macOS) o objetos
+  if (Array.isArray(rn)) return rn.map(String).join("\n\n");
   try {
     return JSON.stringify(rn, null, 2);
   } catch {
@@ -23,13 +24,13 @@ export function useUpdateUx() {
   const [notesVersion, setNotesVersion] = useState("");
   const [notesBody, setNotesBody] = useState<string>("");
 
-  // ✅ 1) Cargar notas guardadas (para que "Release notes" funcione siempre)
+  // ✅ cargar cache al iniciar (para que el botón funcione sin “Buscar updates”)
   useEffect(() => {
-    const savedBody = localStorage.getItem(LS_LAST_NOTES_BODY) ?? "";
-    const savedVer = localStorage.getItem(LS_LAST_NOTES_VER) ?? "";
-    if (savedBody) {
-      setNotesBody(savedBody);
-      setNotesVersion(savedVer || "Release notes");
+    const cachedBody = localStorage.getItem(LS_LAST_NOTES_BODY) ?? "";
+    const cachedVer = localStorage.getItem(LS_LAST_NOTES_VER) ?? "";
+    if (cachedBody) {
+      setNotesBody(cachedBody);
+      setNotesVersion(cachedVer || "Release notes");
     }
   }, []);
 
@@ -40,12 +41,28 @@ export function useUpdateUx() {
       const state = String(s?.state ?? "");
 
       if (state === "boot") {
-        const v = String(s?.version ?? "");
-        setAppVersion(v);
-
-        // Si ya teníamos notas guardadas pero sin versión, úsala
-        setNotesVersion((prev) => prev || v || "Release notes");
+        setAppVersion(String(s?.version ?? ""));
       }
+
+      // ✅ helper: cachear notes si vienen
+      const maybeStoreNotes = (versionRaw: any, rnRaw: any) => {
+        const v = String(versionRaw ?? "").trim();
+        const rn = normalizeNotes(rnRaw).trim();
+        if (!rn) return;
+
+        const sig = `${v}::${rn.slice(0, 140)}`;
+        const lastSig = localStorage.getItem(LS_LAST_NOTES_SIG) ?? "";
+
+        // guardamos aunque sea la misma versión si el contenido cambió
+        if (sig !== lastSig) {
+          localStorage.setItem(LS_LAST_NOTES_SIG, sig);
+          localStorage.setItem(LS_LAST_NOTES_BODY, rn);
+          localStorage.setItem(LS_LAST_NOTES_VER, v || "Release notes");
+        }
+
+        setNotesVersion(v || "Release notes");
+        setNotesBody(rn);
+      };
 
       if (state === "available") {
         toast.info("🔄 Actualización disponible (descargando…)", 2600);
@@ -53,36 +70,39 @@ export function useUpdateUx() {
         const v = String(s?.version ?? "");
         const rn = s?.releaseNotes ?? null;
 
-        // ✅ guarda notas también cuando está disponible
         if (rn) {
           setNotesVersion(v || "Nueva versión");
           setNotesBody(rn);
         }
       }
 
+      if (state === "downloading") {
+        // no spamear
+      }
+
       if (state === "downloaded") {
         toast.success("✅ Actualización lista. Reinicia para aplicar.", 3400);
+        maybeStoreNotes(s?.version, s?.releaseNotes);
 
-        const v = String(s?.version ?? "");
-        const rnStr = normalizeNotes(s?.releaseNotes);
-
-        // ✅ Guardar siempre que existan notas
-        if (rnStr) {
-          const sig = `${v}::${rnStr.slice(0, 160)}`;
+        // ✅ abrir modal una vez por versión/notas
+        const rn = normalizeNotes(s?.releaseNotes).trim();
+        const v = String(s?.version ?? "").trim();
+        if (rn) {
+          const sig = `${v}::${rn.slice(0, 140)}`;
           const lastSig = localStorage.getItem(LS_LAST_NOTES_SIG) ?? "";
-
+          // si recién cambió, lo abrimos
           if (sig !== lastSig) {
-            localStorage.setItem(LS_LAST_NOTES_SIG, sig);
-            localStorage.setItem(LS_LAST_NOTES_BODY, rnStr);
-            localStorage.setItem(LS_LAST_NOTES_VER, v);
-
             setNotesVersion(v || "Nueva versión");
-            setNotesBody(rnStr);
-
-            // ✅ Abrir modal 1 vez por versión/notas
+            setNotesBody(rn);
             setNotesOpen(true);
           }
         }
+      }
+
+      if (state === "none") {
+        // ✅ no hay update, pero igual el botón puede mostrar cache anterior
+        // (opcional) toast suave:
+        // toast.info("✅ Estás en la última versión.", 2000);
       }
 
       if (state === "error") {
@@ -99,7 +119,7 @@ export function useUpdateUx() {
   const notesModal = (
     <ReleaseNotesModal
       open={notesOpen}
-      version={notesVersion || appVersion || "Release notes"}
+      version={notesVersion}
       notes={notesBody}
       onClose={() => setNotesOpen(false)}
     />
@@ -108,26 +128,16 @@ export function useUpdateUx() {
   return {
     appVersion,
     notesModal,
-    openNotes: async () => {
-      // si ya hay notas cargadas, abre
-      if (notesBody) {
+    openNotes: () => {
+      if (!notesBody) {
+        setNotesVersion(appVersion || "Notas de versión");
+        setNotesBody(
+          "Aún no hay notas cargadas. Pulsa “Buscar updates” para consultar GitHub.",
+        );
         setNotesOpen(true);
         return;
       }
-
-      // si no hay notas, intenta buscarlas (check)
-      toast.info("Buscando updates…", 1800);
-      await window.updateApi?.check?.();
-
-      // si aun no hay notas (porque no hay update o no descargó), muestra aviso
-      setTimeout(() => {
-        if (!notesBody) {
-          toast.info(
-            "Aún no hay notas. Si hay update, saldrán al descargar.",
-            2600,
-          );
-        }
-      }, 1200);
+      setNotesOpen(true);
     },
   };
 }

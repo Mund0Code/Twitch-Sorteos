@@ -125,7 +125,7 @@ function createWindow() {
   });
 
   win.webContents.on("did-finish-load", () => {
-    win?.webContents.openDevTools({ mode: "detach" });
+    //win?.webContents.openDevTools({ mode: "detach" });
     win?.webContents.send("main-process-message", new Date().toLocaleString());
   });
 

@@ -1,8 +1,8 @@
 version: 1.2.3
 files:
   - url: Twitch-Sorteos-Setup-1.2.3.exe
-    sha512: eUtweGc0DVKSuo3L28F8EmSUlhW/FQ2vZQns9tTceEyy8LaIw1aadC3Ms+lEAuiseR2iQOanZaG7zZaUxZBiog==
-    size: 78228211
+    sha512: tRdHQXvRtr3Ag42OAKMgo5L8qFO1micgAwpXKLBm7X7N+SCuXp7uIHP+MekjkKO9C4jPISGLS4hgI1w9R1guUQ==
+    size: 78228318
 path: Twitch-Sorteos-Setup-1.2.3.exe
-sha512: eUtweGc0DVKSuo3L28F8EmSUlhW/FQ2vZQns9tTceEyy8LaIw1aadC3Ms+lEAuiseR2iQOanZaG7zZaUxZBiog==
-releaseDate: '2026-02-19T17:36:05.698Z'
+sha512: tRdHQXvRtr3Ag42OAKMgo5L8qFO1micgAwpXKLBm7X7N+SCuXp7uIHP+MekjkKO9C4jPISGLS4hgI1w9R1guUQ==
+releaseDate: '2026-02-20T13:09:31.151Z'
